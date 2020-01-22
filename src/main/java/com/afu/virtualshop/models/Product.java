@@ -1,13 +1,19 @@
 package com.afu.virtualshop.models;
 
+import com.afu.virtualshop.models.hibernate.JsonDataUserType;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
+
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Entity
-public class Product implements Serializable {
+@Table(name = "product")
+@TypeDef(name = "JsonDataUserType", typeClass = JsonDataUserType.class)
+public class Product extends AuditEntity {
 
     @Id
     @Column(name = "product_id")
@@ -20,7 +26,9 @@ public class Product implements Serializable {
 
     private String description;
 
-    private List dimention;
+    @Column(name = "dimentions")
+    @Type(type = "JsonDataUserType")
+    private Map<String, String> dimentions;
 
     @NotEmpty
     @Column(name = "quantity", nullable = false)
@@ -32,8 +40,18 @@ public class Product implements Serializable {
     @Column(name = "unit_price", nullable = false)
     private float unitPrice;
 
-    @OneToMany(mappedBy="input_product")
+    @NotEmpty
+    @Column(name = "product_category", nullable = false)
+    private ProductCategory productCategory;
+
+    @OneToMany(mappedBy="product")
     private List<InputProduct> inputProducts = new ArrayList<>();
+
+    @OneToMany(mappedBy="product")
+    private List<SaleProduct> saleProducts = new ArrayList<>();
+
+    @ManyToMany(mappedBy = "products")
+    private List<Sale> sales;
 
     public Integer getId() {
         return id;
@@ -59,12 +77,12 @@ public class Product implements Serializable {
         this.description = description;
     }
 
-    public List getDimention() {
-        return dimention;
+    public Map<String, String> getDimentions() {
+        return dimentions;
     }
 
-    public void setDimention(List dimention) {
-        this.dimention = dimention;
+    public void setDimentions(Map<String, String> dimentions) {
+        this.dimentions = dimentions;
     }
 
     public Integer getQuantity() {
@@ -97,5 +115,21 @@ public class Product implements Serializable {
 
     public void setInputProducts(List<InputProduct> inputProducts) {
         this.inputProducts = inputProducts;
+    }
+
+    public List<SaleProduct> getSaleProducts() {
+        return saleProducts;
+    }
+
+    public void setSaleProducts(List<SaleProduct> saleProducts) {
+        this.saleProducts = saleProducts;
+    }
+
+    public List<Sale> getSales() {
+        return sales;
+    }
+
+    public void setSales(List<Sale> sales) {
+        this.sales = sales;
     }
 }

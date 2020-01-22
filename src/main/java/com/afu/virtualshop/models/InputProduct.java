@@ -2,12 +2,15 @@ package com.afu.virtualshop.models;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
 
+/**
+ * The type Input product.
+ *  This entity represents additions to product inventory
+ * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
+ */
 @Entity
-public class InputProduct implements Serializable {
+@Table(name = "input_product")
+public class InputProduct extends AuditEntity {
 
     @Id
     @Column(name = "input_product_id")
@@ -22,13 +25,97 @@ public class InputProduct implements Serializable {
 
     private String billNumber;
 
-    private String shippingAddress;
-
     @ManyToOne
-    @JoinColumn(name="customer_id", nullable=false)
-    private Customer customer;
+    @JoinColumn(name="product_id", nullable=false)
+    private Product product;
 
-    @OneToMany(mappedBy="sale_product_id")
-    private List<InputProduct> saleProduct = new ArrayList<>();
+    /**
+     * Gets id.
+     *
+     * @return the id
+     */
+    public Integer getId() {
+        return id;
+    }
 
+    /**
+     * Sets id.
+     *
+     * @param id the id
+     */
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    /**
+     * Gets quantity.
+     *
+     * @return the quantity
+     */
+    public Integer getQuantity() {
+        return quantity;
+    }
+
+    /**
+     * Sets quantity.
+     *
+     * @param quantity the quantity
+     */
+    public void setQuantity(Integer quantity) {
+        this.quantity = quantity;
+    }
+
+    /**
+     * Gets nit provider.
+     *
+     * @return the nit provider
+     */
+    public String getNitProvider() {
+        return nitProvider;
+    }
+
+    /**
+     * Sets nit provider.
+     *
+     * @param nitProvider the nit provider
+     */
+    public void setNitProvider(String nitProvider) {
+        this.nitProvider = nitProvider;
+    }
+
+    /**
+     * Gets bill number.
+     *
+     * @return the bill number
+     */
+    public String getBillNumber() {
+        return billNumber;
+    }
+
+    /**
+     * Sets bill number.
+     *
+     * @param billNumber the bill number
+     */
+    public void setBillNumber(String billNumber) {
+        this.billNumber = billNumber;
+    }
+
+    /**
+     * Gets product.
+     *
+     * @return the product
+     */
+    public Product getProduct() {
+        return product;
+    }
+
+    /**
+     * Sets product.
+     *
+     * @param product the product
+     */
+    public void setProduct(Product product) {
+        this.product = product;
+    }
 }

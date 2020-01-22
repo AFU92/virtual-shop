@@ -4,41 +4,34 @@ import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
 
 /**
- * The type Sale product.
+ * The type Sale refunded product.
  *
  * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
 @Entity
-@Table(name = "sale_product")
-public class SaleProduct extends AuditEntity {
+@Table(name = "sale_refunded_product")
+public class SaleRefundedProduct extends AuditEntity {
 
     @Id
-    @Column(name = "sale_product_id")
+    @Column(name = "sale_refunded_product_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @NotEmpty
-    @Column(name = "unit_price", nullable = false)
-    private String unitPrice;
 
     @NotEmpty
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
     @NotEmpty
-    @Column(name = "total_price", nullable = false)
+    @Column(name = "total_value", nullable = false)
     private String totalPrice;
 
-    @ManyToOne
-    @JoinColumn(name="product_id", nullable=false)
-    private Product product;
+    @OneToOne
+    @JoinColumn(name="sale_product_id", nullable=false)
+    private SaleProduct saleProduct;
 
     @ManyToOne
     @JoinColumn(name="sale_id", nullable=false)
     private Sale sale;
-
-    @OneToOne(mappedBy = "saleProduct")
-    private SaleRefundedProduct saleRefundedProduct;
 
     /**
      * Gets id.
@@ -56,24 +49,6 @@ public class SaleProduct extends AuditEntity {
      */
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    /**
-     * Gets unit price.
-     *
-     * @return the unit price
-     */
-    public String getUnitPrice() {
-        return unitPrice;
-    }
-
-    /**
-     * Sets unit price.
-     *
-     * @param unitPrice the unit price
-     */
-    public void setUnitPrice(String unitPrice) {
-        this.unitPrice = unitPrice;
     }
 
     /**
@@ -113,21 +88,21 @@ public class SaleProduct extends AuditEntity {
     }
 
     /**
-     * Gets product.
+     * Gets sale product.
      *
-     * @return the product
+     * @return the sale product
      */
-    public Product getProduct() {
-        return product;
+    public SaleProduct getSaleProduct() {
+        return saleProduct;
     }
 
     /**
-     * Sets product.
+     * Sets sale product.
      *
-     * @param product the product
+     * @param saleProduct the sale product
      */
-    public void setProduct(Product product) {
-        this.product = product;
+    public void setSaleProduct(SaleProduct saleProduct) {
+        this.saleProduct = saleProduct;
     }
 
     /**
@@ -146,23 +121,5 @@ public class SaleProduct extends AuditEntity {
      */
     public void setSale(Sale sale) {
         this.sale = sale;
-    }
-
-    /**
-     * Gets sale refunded product.
-     *
-     * @return the sale refunded product
-     */
-    public SaleRefundedProduct getSaleRefundedProduct() {
-        return saleRefundedProduct;
-    }
-
-    /**
-     * Sets sale refunded product.
-     *
-     * @param saleRefundedProduct the sale refunded product
-     */
-    public void setSaleRefundedProduct(SaleRefundedProduct saleRefundedProduct) {
-        this.saleRefundedProduct = saleRefundedProduct;
     }
 }
