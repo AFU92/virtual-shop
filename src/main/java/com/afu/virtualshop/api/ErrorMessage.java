@@ -10,6 +10,7 @@ import lombok.Data;
  * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
 @Data
+
 public class ErrorMessage {
 
     private String message;

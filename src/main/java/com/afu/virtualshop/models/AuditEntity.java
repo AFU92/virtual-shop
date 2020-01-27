@@ -17,6 +17,7 @@ import java.sql.Timestamp;
  */
 @MappedSuperclass
 @Data
+
 public class AuditEntity implements Serializable {
     /**
      * The Created at.

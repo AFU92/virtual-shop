@@ -14,6 +14,7 @@ import javax.validation.constraints.NotEmpty;
 @Entity
 @Table(name = "input_product")
 @Data
+
 public class InputProduct extends AuditEntity {
 
     @Id

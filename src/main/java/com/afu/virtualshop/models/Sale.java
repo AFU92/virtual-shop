@@ -14,6 +14,7 @@ import java.util.List;
  */
 @Entity
 @Data
+
 public class Sale extends AuditEntity {
 
     @Id
