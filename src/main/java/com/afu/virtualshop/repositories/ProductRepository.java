@@ -1,14 +1,43 @@
 package com.afu.virtualshop.repositories;
 
 import com.afu.virtualshop.models.Product;
+import com.afu.virtualshop.models.ProductCategory;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
+import java.util.Optional;
 
+/**
+ * The interface Product repository.
+ *
+ * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
+ */
 public interface ProductRepository extends JpaRepository<Product, Integer> {
 
-    Product findBy(String name);
+    /**
+     * Find by name optional.
+     *
+     * @param name the name
+     * @return the optional
+     */
+    Optional<Product> findByName(String name);
 
-    List<Product> findByProductCategory(List<String> productCategory);
+    /**
+     * Find by product category list.
+     *
+     * @param productCategory the product category
+     * @return the list
+     */
+    List<Product> findByProductCategory(ProductCategory productCategory);
+
+    /**
+     * Find by id and not deleted optional.
+     *
+     * @param id the id
+     * @return the optional
+     */
+    @Query("FROM Product p WHERE p.id = ?1 and p.deletedAt is not null")
+    Optional<Product> findByIdAndNotDeleted(Integer id);
 
 }
