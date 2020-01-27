@@ -7,6 +7,7 @@ import org.hibernate.annotations.TypeDef;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,17 +37,17 @@ public class Product extends AuditEntity {
     @Type(type = "JsonDataUserType")
     private Map<String, String> dimentions;
 
-    @NotEmpty
+    @NotNull
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
     private String image;
 
-    @NotEmpty
+    @NotNull
     @Column(name = "unit_price", nullable = false)
     private float unitPrice;
 
-    @NotEmpty
+    @NotNull
     @Column(name = "product_category", nullable = false)
     private ProductCategory productCategory;
 

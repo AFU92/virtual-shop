@@ -8,6 +8,7 @@ import javax.validation.constraints.NotEmpty;
 /**
  * The type Input product.
  *  This entity represents additions to product inventory
+ *
  * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
 @Entity
