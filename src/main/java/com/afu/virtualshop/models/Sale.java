@@ -31,6 +31,8 @@ public class Sale extends AuditEntity {
     @Column(name = "refund_value", nullable = false)
     private Float refundValue;
 
+    private String refundReason;
+
     @Column(nullable = false)
     private SaleStatus status;
 

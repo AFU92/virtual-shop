@@ -10,8 +10,9 @@ import java.util.Map;
  * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
 @Data
-
 public class Order {
+
+    private String id;
     private String accountId;
     private String referenceCode;
     private String description;

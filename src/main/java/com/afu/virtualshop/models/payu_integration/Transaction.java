@@ -10,7 +10,6 @@ import java.util.Map;
  * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
 @Data
-
 public class Transaction {
 
     /**
@@ -36,4 +35,6 @@ public class Transaction {
     private String ipAddress;
     private String cookie;
     private String userAgent;
+    private String reason;
+    private String parentTransactionId;
 }

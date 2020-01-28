@@ -1,6 +1,9 @@
 package com.afu.virtualshop.services.external_providers.payments.impl;
 
+import com.afu.virtualshop.exceptions.NotFoundException;
+import com.afu.virtualshop.models.ProviderTransaction;
 import com.afu.virtualshop.models.Sale;
+import com.afu.virtualshop.models.TransactionResult;
 import com.afu.virtualshop.models.api.PaymentInfo;
 import com.afu.virtualshop.models.payu_integration.*;
 import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
@@ -148,11 +151,48 @@ public class PayuPaymentProvider implements PaymentProvider {
 
     @Override
     public Sale refundPayment(Sale sale) {
-        return null;
+        PayuRefund payuRefund = new PayuRefund();
+
+        payuRefund.setLanguage(LANGUAGE);
+        payuRefund.setCommand(Command.SUBMIT_TRANSACTION);
+
+        Merchant merchant = new Merchant();
+
+        merchant.setApiKey(API_KEY);
+        merchant.setApiLogin(API_LOGIN);
+
+        Transaction transaction = new Transaction();
+
+        Order order = new Order();
+
+        order.setId(sale.getExternalSaleId());
+        transaction.setOrder(order);
+
+        transaction.setType(TransactionType.REFUND);
+        transaction.setReason(sale.getRefundReason());
+        transaction.setParentTransactionId(this.getCaptureTransaction(sale).getProviderTransactionId());
+
+        payuRefund.setTransaction(transaction);
+        payuRefund.setTest(false);
+
+        return sale;
+
+    }
+
+    private ProviderTransaction getCaptureTransaction(Sale sale){
+        return sale.getProviderTransactions()
+                .stream()
+                .filter(providerTransaction -> providerTransaction.getType().equals(TransactionType.AUTHORIZATION_AND_CAPTURE) &&
+                        providerTransaction.getResult().equals(TransactionResult.APPROVED))
+                .findFirst()
+                .orElseThrow(() -> new NotFoundException("There is no approved capture for the sale " + sale.getId()));
     }
 
     @Override
     public Sale queryPayment(Sale sale) {
         return null;
     }
+
+
+
 }
