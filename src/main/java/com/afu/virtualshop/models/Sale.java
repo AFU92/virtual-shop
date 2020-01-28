@@ -14,7 +14,6 @@ import java.util.List;
  */
 @Entity
 @Data
-
 public class Sale extends AuditEntity {
 
     @Id
@@ -24,13 +23,13 @@ public class Sale extends AuditEntity {
 
     @NotEmpty
     @Column(name = "total_price", nullable = false)
-    private String totalPrice;
+    private Float totalPrice;
 
     @Column(name = "refund_percent", nullable = false)
-    private Integer refundPercent;
+    private Float refundPercent;
 
     @Column(name = "refund_value", nullable = false)
-    private String refundValue;
+    private Float refundValue;
 
     @Column(nullable = false)
     private SaleStatus status;
@@ -38,11 +37,17 @@ public class Sale extends AuditEntity {
     @Column(name = "shipping_address")
     private String shippingAddress;
 
+    @Column(name = "external_sale_id")
+    private String externalSaleId;
+
     @OneToMany(mappedBy="sale")
     private List<SaleProduct> saleProducts = new ArrayList<>();
 
     @OneToMany(mappedBy="sale")
     private List<SaleRefundedProduct> saleRefundedProducts = new ArrayList<>();
+
+    @OneToMany(mappedBy="sale")
+    private List<ProviderTransaction> providerTransactions = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name="customer_id", nullable=false)

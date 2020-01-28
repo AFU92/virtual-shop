@@ -13,7 +13,7 @@ import lombok.Data;
 public class PayuRequest {
 
         private String language;
-        private String command;
+        private Command command;
         /**
          * The Merchant.
          */

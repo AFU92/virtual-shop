@@ -2,10 +2,12 @@ package com.afu.virtualshop.models.payu_integration;
 
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * The type Transaction.
  *
- * * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
+ * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
 @Data
 
@@ -26,8 +28,8 @@ public class Transaction {
     /**
      * The Extra parameters.
      */
-    private ExtraParameter extraParameter;
-    private String type;
+    private Map <ExtraParameter, Object> extraParameters;
+    private TransactionType type;
     private String paymentMethod;
     private String paymentCountry;
     private String deviceSessionId;

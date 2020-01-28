@@ -2,6 +2,8 @@ package com.afu.virtualshop.models.payu_integration;
 
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * The type Order.
  *
@@ -16,16 +18,13 @@ public class Order {
     private String language;
     private String signature;
     private String notifyUrl;
-    /**
-     * The Additional values.
-     */
-    AdditionalValues values;
+    private Map<AdditionalValueType, AdditionalValue> additionalValues;
     /**
      * The Buyer.
      */
-    Buyer buyer;
+    private Buyer buyer;
     /**
      * The Shipping address.
      */
-    Address address;
+    private Address address;
 }

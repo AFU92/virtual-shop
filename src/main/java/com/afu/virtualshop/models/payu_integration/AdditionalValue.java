@@ -1,16 +1,16 @@
 package com.afu.virtualshop.models.payu_integration;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * The type Tx value.
+ * The type Additional values.
  *
  * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
 @Data
-
-public class TxValue {
+@AllArgsConstructor
+public class AdditionalValue {
     private float value;
     private String currency;
-
 }

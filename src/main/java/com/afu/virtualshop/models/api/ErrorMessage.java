@@ -1,4 +1,4 @@
-package com.afu.virtualshop.api;
+package com.afu.virtualshop.models.api;
 
 import java.util.ArrayList;
 import java.util.List;

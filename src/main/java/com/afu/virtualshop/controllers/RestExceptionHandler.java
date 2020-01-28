@@ -1,6 +1,6 @@
 package com.afu.virtualshop.controllers;
 
-import com.afu.virtualshop.api.ErrorMessage;
+import com.afu.virtualshop.models.api.ErrorMessage;
 import com.afu.virtualshop.exceptions.NotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
