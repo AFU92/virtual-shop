@@ -16,8 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * The type Payu payment provider.
@@ -28,171 +26,153 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PayuPaymentProvider implements PaymentProvider {
 
-    @Value("${external-providers.payments.payu.apikey}")
-    private String API_KEY;
+        @Value("${external-providers.payments.payu.apikey}")
+        private String API_KEY;
 
-    @Value("${external-providers.payments.payu.apilogin}")
-    private String API_LOGIN;
+        @Value("${external-providers.payments.payu.apilogin}")
+        private String API_LOGIN;
 
-    @Value("${external-providers.payments.payu.account-id}")
-    private String ACCOUNT_ID;
+        @Value("${external-providers.payments.payu.account-id}")
+        private String ACCOUNT_ID;
 
-    @Value("${external-providers.payments.payu.service-url}")
-    private String SERVICE_URL;
+        @Value("${external-providers.payments.payu.service-url}")
+        private String SERVICE_URL;
 
-    /** The rest template. */
-    private RestTemplate restTemplate;
+        /** The rest template. */
+        private RestTemplate restTemplate;
 
-    /**
-     * The constant FORMAT_DESCRIPTION.
-     */
-    private static final String FORMAT_DESCRIPTION = "%s-%s";
+        /**
+         * The constant FORMAT_DESCRIPTION.
+         */
+        private static final String FORMAT_DESCRIPTION = "%s-%s";
 
-    /**
-     * The constant COUNTRY.
-     */
-    private static final String COUNTRY = "CO";
+        /**
+         * The constant COUNTRY.
+         */
+        private static final String COUNTRY = "CO";
 
-    /**
-     * The constant LANGUAGE.
-     */
-    private static final String LANGUAGE = "es";
+        /**
+         * The constant LANGUAGE.
+         */
+        private static final String LANGUAGE = "es";
 
-    /**
-     * The constant SPLIT_ADDRESS.
-     */
-    private static final String SPLIT_ADDRESS = ";";
+        /**
+         * The constant SPLIT_ADDRESS.
+         */
+        private static final String SPLIT_ADDRESS = ";";
 
-    /**
-     * The constant CURRENCY.
-     */
-    public static final String CURRENCY = "COP";
+        /**
+         * The constant CURRENCY.
+         */
+        public static final String CURRENCY = "COP";
 
-    /**
-     * Inits the.
-     */
-    @PostConstruct
-    public void init() {
-        restTemplate = new RestTemplate();
-    }
+        /**
+         * Inits the.
+         */
+        @PostConstruct
+        public void init() {
+                restTemplate = new RestTemplate();
+        }
 
-    @Override
-    public Sale createPayment(Sale sale, PaymentInfo paymentInfo) {
+        @Override
+        public Sale createPayment(Sale sale, PaymentInfo paymentInfo) {
+                validateAuthorizationAndCaptureParams(sale,  paymentInfo);
+                PayuRequest payuRequest = createAuthorizationAndCaptureRequest(sale, paymentInfo);
 
-        PayuRequest payuRequest = new PayuRequest();
+                PayuResponse payuResponse = this.sendRequestToPayu(payuRequest);
+                return sale;
+        }
 
-        payuRequest.setLanguage(LANGUAGE);
-        payuRequest.setCommand(Command.SUBMIT_TRANSACTION);
+        @Override
+        public Sale refundPayment(Sale sale) {
+                validateRefundParams(sale);
+                PayuRequest payuRequest = createRefundRequest(sale);
 
-        Merchant merchant = new Merchant();
+                PayuResponse payuResponse = this.sendRequestToPayu(payuRequest);
+                return sale;
 
-        merchant.setApiKey(API_KEY);
-        merchant.setApiLogin(API_LOGIN);
+        }
 
-        Transaction transaction = new Transaction();
+        @Override
+        public Sale queryPayment(Sale sale) {
+                return null;
+        }
 
-        Map<ExtraParameter, Object> extraParameters = new HashMap<>();
-        extraParameters.put(ExtraParameter.INSTALLMENTS, paymentInfo.getInstallmentsNumber());
-        transaction.setExtraParameters(extraParameters);
+        private PayuRequest createAuthorizationAndCaptureRequest(Sale sale, PaymentInfo paymentInfo) {
+                Order order = Order.createBuilder().withAccountId(ACCOUNT_ID).withReferenceCode(sale.getId().toString())
+                                .withDescription(String.format(FORMAT_DESCRIPTION, sale.getId(),
+                                                System.currentTimeMillis()))
+                                .withLanguage(LANGUAGE).addAdditionalValue(AdditionalValueType.TX_VALUE,
+                                                new AdditionalValue(sale.getTotalPrice(), CURRENCY))
+                                .build();
 
-        transaction.setType(TransactionType.AUTHORIZATION_AND_CAPTURE);
-        transaction.setPaymentMethod(paymentInfo.getPaymentMethod().name());
-        transaction.setPaymentCountry(COUNTRY);
+                CreditCard creditCard = CreditCard.createBuilder().withName(sale.getCustomer().getFullName())
+                                .withNumber(paymentInfo.getCreditCardNumber())
+                                .withExpirationDate(paymentInfo.getCreditCardExpirationDate())
+                                .withSecurityCode(paymentInfo.getCreditCardCVV()).build();
 
-        Order order = new Order();
+                String[] fullAddress = sale.getCustomer().getAddress().split(SPLIT_ADDRESS);
+                Address billingAddress = Address.createBuilder().withStreet1(fullAddress[0]).withCity(fullAddress[1])
+                                .withCountry(COUNTRY).withPhone(sale.getCustomer().getPhone()).build();
 
-        order.setAccountId(ACCOUNT_ID);
-        order.setReferenceCode(sale.getId().toString());
-        order.setDescription(String.format(FORMAT_DESCRIPTION, sale.getId(), System.currentTimeMillis()));
-        order.setLanguage(LANGUAGE);
+                Payer payer = Payer.createBuilder().withFullName(sale.getCustomer().getFullName())
+                                .withEmailAddress(sale.getCustomer().getEmail())
+                                .withContactPhone(sale.getCustomer().getPhone())
+                                .withDniNumber(sale.getCustomer().getDocumentNumber())
+                                .withBillingAddress(billingAddress).build();
 
-        Map<AdditionalValueType, AdditionalValue> additionalValues = new HashMap<>();
-        additionalValues.put(AdditionalValueType.TX_VALUE, new AdditionalValue(sale.getTotalPrice(), CURRENCY));
+                Transaction transaction = Transaction.createBuilder().withCreditCard(creditCard).withOrder(order)
+                                .addExtraParameter(ExtraParameter.INSTALLMENTS, paymentInfo.getInstallmentsNumber())
+                                .withType(TransactionType.AUTHORIZATION_AND_CAPTURE)
+                                .withPaymentMethod(paymentInfo.getPaymentMethod().name()).withPaymentCountry(COUNTRY)
+                                .withPayer(payer).build();
 
-        order.setAdditionalValues(additionalValues);
+                return PayuRequest.createBuilder(LANGUAGE, Command.SUBMIT_TRANSACTION, API_KEY, API_LOGIN)
+                                .withTest(false).withTransaction(transaction).build();
+        }
 
-        CreditCard creditCard = new CreditCard();
-        creditCard.setName(sale.getCustomer().getFullName());
-        creditCard.setNumber(paymentInfo.getCreditCardNumber());
-        creditCard.setExpirationDate(paymentInfo.getCreditCardExpirationDate());
-        creditCard.setSecurityCode(paymentInfo.getCreditCardCVV());
+        private void validateAuthorizationAndCaptureParams(Sale sale, PaymentInfo paymentInfo){
 
-        transaction.setCreditCard(creditCard);
-        payuRequest.setTest(false);
+        }
 
-        Payer payer = new Payer();
+        private PayuRequest createRefundRequest(Sale sale) {
+                Order order = Order.createBuilder().withId(sale.getExternalSaleId()).build();
 
-        payer.setFullName(sale.getCustomer().getFullName());
-        payer.setEmailAddress(sale.getCustomer().getEmail());
-        payer.setContactPhone(sale.getCustomer().getPhone());
-        payer.setDniNumber(sale.getCustomer().getDocumentNumber());
+                Transaction transaction = Transaction.createBuilder().withOrder(order).withType(TransactionType.REFUND)
+                                .withReason(sale.getRefundReason())
+                                .withParentTransactionId(this.getCaptureTransaction(sale).getProviderTransactionId())
+                                .build();
 
-        Address billingAddress = new Address();
+                return PayuRequest.createBuilder(LANGUAGE, Command.SUBMIT_TRANSACTION, API_KEY, API_LOGIN)
+                                .withTransaction(transaction).withTest(false).build();
+        }
 
-        String[] fullAddress = sale.getCustomer().getAddress().split(SPLIT_ADDRESS);
-        billingAddress.setStreet1(fullAddress[0]);
-        billingAddress.setCity(fullAddress[1]);
-        billingAddress.setCountry(COUNTRY);
-        billingAddress.setPhone(sale.getCustomer().getPhone());
+        private void validateRefundParams(Sale sale){
 
-        payer.setBillingAddress(billingAddress);
+        }
 
-        transaction.setPayer(payer);
+        /**
+         * Find the providerTransaction with type AUTHORIZATION_AND_CAPTURE and result
+         * APPROVED of the sale
+         * 
+         * @param sale
+         * @return providerTransaction with type AUTHORIZATION_AND_CAPTURE and result
+         *         APPROVED
+         */
+        private ProviderTransaction getCaptureTransaction(Sale sale) {
+                return sale.getProviderTransactions().stream()
+                                .filter(providerTransaction -> providerTransaction.getType()
+                                                .equals(TransactionType.AUTHORIZATION_AND_CAPTURE)
+                                                && providerTransaction.getResult().equals(TransactionResult.APPROVED))
+                                .findFirst().orElseThrow(() -> new NotFoundException(
+                                                "There is no approved capture for the sale " + sale.getId()));
+        }
 
-        HttpEntity<PayuRequest> request = new HttpEntity<>(payuRequest);
-        ResponseEntity<PayuResponse> response = restTemplate.exchange(SERVICE_URL, HttpMethod.POST, request,
-                PayuResponse.class);
-
-        // ToDo read response and update sale with PayU's orderId, create a new
-        // ProviderTransaction and save it in Sale
-
-        return sale;
-    }
-
-    @Override
-    public Sale refundPayment(Sale sale) {
-        PayuRefund payuRefund = new PayuRefund();
-
-        payuRefund.setLanguage(LANGUAGE);
-        payuRefund.setCommand(Command.SUBMIT_TRANSACTION);
-
-        Merchant merchant = new Merchant();
-
-        merchant.setApiKey(API_KEY);
-        merchant.setApiLogin(API_LOGIN);
-
-        Transaction transaction = new Transaction();
-
-        Order order = new Order();
-
-        order.setId(sale.getExternalSaleId());
-        transaction.setOrder(order);
-
-        transaction.setType(TransactionType.REFUND);
-        transaction.setReason(sale.getRefundReason());
-        transaction.setParentTransactionId(this.getCaptureTransaction(sale).getProviderTransactionId());
-
-        payuRefund.setTransaction(transaction);
-        payuRefund.setTest(false);
-
-        return sale;
-
-    }
-
-    private ProviderTransaction getCaptureTransaction(Sale sale){
-        return sale.getProviderTransactions()
-                .stream()
-                .filter(providerTransaction -> providerTransaction.getType().equals(TransactionType.AUTHORIZATION_AND_CAPTURE) &&
-                        providerTransaction.getResult().equals(TransactionResult.APPROVED))
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("There is no approved capture for the sale " + sale.getId()));
-    }
-
-    @Override
-    public Sale queryPayment(Sale sale) {
-        return null;
-    }
-
-
+        private PayuResponse sendRequestToPayu(PayuRequest payuRequest){
+                HttpEntity<PayuRequest> request = new HttpEntity<>(payuRequest);
+                ResponseEntity<PayuResponse> response = restTemplate.exchange(SERVICE_URL, HttpMethod.POST, request,
+                        PayuResponse.class);
+                return response.getBody();
+        }
 
 }
