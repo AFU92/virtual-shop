@@ -8,7 +8,6 @@ import lombok.Data;
  * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
 @Data
-
 public class Merchant {
     private String apiKey;
     private String apiLogin;

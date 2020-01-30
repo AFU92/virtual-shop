@@ -48,7 +48,7 @@ public class ProductController {
      * @return the response entity
      */
     @GetMapping("/{id}")
-    public ResponseEntity<Product> findById(@PathVariable Integer id) {
+    public ResponseEntity<Product> findById(@PathVariable Integer id){
         return ResponseEntity.ok(productService.findById(id));
     }
 
@@ -60,7 +60,7 @@ public class ProductController {
      * @return the response entity
      */
     @PutMapping("/{id}")
-    public ResponseEntity<Product> update(@PathVariable Integer id, @RequestBody Product product) {
+    public ResponseEntity<Product> update(@PathVariable Integer id, @RequestBody Product product){
         product.setId(id);
         return ResponseEntity.ok(productService.update(product));
     }
@@ -72,7 +72,7 @@ public class ProductController {
      * @return the response entity
      */
     @PostMapping
-    public ResponseEntity<Product> create(@RequestBody Product product) {
+    public ResponseEntity<Product> create(@RequestBody Product product){
         Product newProduct = productService.create(product);
         return ResponseEntity.status(HttpStatus.CREATED).body(newProduct);
     }
