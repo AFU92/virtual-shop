@@ -3,10 +3,12 @@ package com.afu.virtualshop.services.external_providers.payments.impl;
 import com.afu.virtualshop.exceptions.NotFoundException;
 import com.afu.virtualshop.models.ProviderTransaction;
 import com.afu.virtualshop.models.Sale;
+import com.afu.virtualshop.models.SaleStatus;
 import com.afu.virtualshop.models.TransactionResult;
 import com.afu.virtualshop.models.api.PaymentInfo;
 import com.afu.virtualshop.models.payu_integration.*;
 import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
+import java.util.Map;
 
 /**
  * The type Payu payment provider.
@@ -80,6 +83,8 @@ public class PayuPaymentProvider implements PaymentProvider {
                 PayuRequest payuRequest = createAuthorizationAndCaptureRequest(sale, paymentInfo);
 
                 PayuResponse payuResponse = this.sendRequestToPayu(payuRequest);
+
+                validateResponse(sale, payuRequest, payuResponse);
                 return sale;
         }
 
@@ -87,8 +92,8 @@ public class PayuPaymentProvider implements PaymentProvider {
         public Sale refundPayment(Sale sale) {
                 validateRefundParams(sale);
                 PayuRequest payuRequest = createRefundRequest(sale);
-
                 PayuResponse payuResponse = this.sendRequestToPayu(payuRequest);
+                validateResponse(sale, payuRequest, payuResponse);
                 return sale;
 
         }
@@ -173,6 +178,22 @@ public class PayuPaymentProvider implements PaymentProvider {
                 ResponseEntity<PayuResponse> response = restTemplate.exchange(SERVICE_URL, HttpMethod.POST, request,
                         PayuResponse.class);
                 return response.getBody();
+        }
+
+        private void validateResponse(Sale sale, PayuRequest payuRequest, PayuResponse payuResponse) {
+                ProviderTransaction providerTransaction = new ProviderTransaction();
+                providerTransaction.setProviderResponse(new ObjectMapper().convertValue(payuResponse, Map.class));
+                providerTransaction.setProviderTransactionId(payuResponse.getTransactionResponse().getTransactionId());
+                providerTransaction.setType(payuRequest.getTransaction().getType().name());
+
+                if (payuResponse.getCode().equals("SUCCESS")){
+                        ResultMapper resultMapper =  ResultMapper.getByTransactionTypeAndResult(payuRequest.getTransaction().getType(), payuResponse.getTransactionResponse().getState());
+                        providerTransaction.setResult(resultMapper.getTransactionResult());
+                        sale.setStatus(resultMapper.getSaleStatus());
+                } else {
+                        providerTransaction.setResult(TransactionResult.REJECTED);
+                }
+                sale.getProviderTransactions().add(providerTransaction);
         }
 
 }

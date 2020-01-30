@@ -38,6 +38,6 @@ public class ProviderTransaction extends AuditEntity {
 
     @Column(name = "provider_response")
     @Type(type = "JsonDataUserType")
-    private Map<String, String> providerResponse;
+    private Map<String, Object> providerResponse;
 
 }

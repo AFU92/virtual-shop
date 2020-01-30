@@ -8,7 +8,7 @@ import java.util.Map;
 public class TransactionResponse {
     private String orderId;
     private String transactionId;
-    private String state;
+    private PayuTransactionResult state;
     private String paymentNetworkResponseCode;
     private String paymentNetworkResponseErrorMessage;
     private String trazabilityCode;
