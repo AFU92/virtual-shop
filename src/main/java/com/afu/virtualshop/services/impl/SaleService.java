@@ -1,8 +1,10 @@
 package com.afu.virtualshop.services.impl;
 
 import com.afu.virtualshop.exceptions.NotFoundException;
+import com.afu.virtualshop.models.Product;
 import com.afu.virtualshop.models.Sale;
 import com.afu.virtualshop.repositories.SaleRepository;
+import com.afu.virtualshop.services.IProductService;
 import com.afu.virtualshop.services.ISaleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 public class SaleService implements ISaleService {
 
     private final SaleRepository saleRepository;
+    private final IProductService productService;
 
     @Override
     public List<Sale> findAll() {
@@ -47,6 +50,8 @@ public class SaleService implements ISaleService {
 
     @Override
     public Sale create(Sale newSale) {
+        List<Product> notAviableProducts;
+        newSale.getProducts().forEach(product -> productService.validateStock(product).equals(false));
         return saleRepository.save(newSale);
     }
 

@@ -1,6 +1,5 @@
 package com.afu.virtualshop.services;
 
-import com.afu.virtualshop.models.Customer;
 import com.afu.virtualshop.models.Sale;
 
 import java.util.List;

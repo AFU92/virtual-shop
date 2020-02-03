@@ -59,4 +59,6 @@ public interface IProductService {
      * @param productId the product id
      */
     void deleteById(Integer productId);
+
+    Boolean validateStock(Product product);
 }

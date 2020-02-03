@@ -56,4 +56,9 @@ public class ProductService implements IProductService {
         product.setDeletedAt((Timestamp) new Date());
         this.productRepository.save(product);
     }
+
+    public Boolean validateStock(Product product){
+        Product existingProduct = findById(product.getId());
+        return product.getQuantity() < existingProduct.getQuantity();
+    }
 }
