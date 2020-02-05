@@ -3,13 +3,13 @@ package com.afu.virtualshop.services.external_providers.payments.impl;
 import com.afu.virtualshop.exceptions.NotFoundException;
 import com.afu.virtualshop.models.ProviderTransaction;
 import com.afu.virtualshop.models.Sale;
-import com.afu.virtualshop.models.SaleStatus;
 import com.afu.virtualshop.models.TransactionResult;
 import com.afu.virtualshop.models.api.PaymentInfo;
 import com.afu.virtualshop.models.payu_integration.*;
 import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
@@ -50,6 +50,11 @@ public class PayuPaymentProvider implements PaymentProvider {
         private static final String FORMAT_DESCRIPTION = "%s-%s";
 
         /**
+         * The constant NOT_NULL_ERROR_MESSAGE
+         */
+        private static final String NOT_NULL_ERROR_MESSAGE = "The %s must not be null";
+
+        /**
          * The constant COUNTRY.
          */
         private static final String COUNTRY = "CO";
@@ -79,7 +84,8 @@ public class PayuPaymentProvider implements PaymentProvider {
 
         @Override
         public Sale createPayment(Sale sale, PaymentInfo paymentInfo) {
-                validateAuthorizationAndCaptureParams(sale,  paymentInfo);
+                //Just in case it wasn't called previously
+                validatePaymentParams(sale,  paymentInfo);
                 PayuRequest payuRequest = createAuthorizationAndCaptureRequest(sale, paymentInfo);
 
                 PayuResponse payuResponse = this.sendRequestToPayu(payuRequest);
@@ -89,13 +95,37 @@ public class PayuPaymentProvider implements PaymentProvider {
         }
 
         @Override
+        public void validatePaymentParams(Sale sale, PaymentInfo paymentInfo) {
+                Validate.notNull(sale, String.format(NOT_NULL_ERROR_MESSAGE, "sale"));
+                Validate.notNull(paymentInfo, String.format(NOT_NULL_ERROR_MESSAGE, "payment Info"));
+                Validate.notNull(sale.getTotalPrice(), String.format(NOT_NULL_ERROR_MESSAGE, "sale's total price"));
+                Validate.notNull(sale.getCustomer(), String.format(NOT_NULL_ERROR_MESSAGE, "sale's customer"));
+                Validate.notNull(sale.getCustomer().getFullName(), String.format(NOT_NULL_ERROR_MESSAGE, "sale's customer's full name"));
+                Validate.notNull(sale.getCustomer().getEmail(), String.format(NOT_NULL_ERROR_MESSAGE, "sale's customer's email"));
+                Validate.notNull(sale.getCustomer().getPhone(), String.format(NOT_NULL_ERROR_MESSAGE, "sale's customer's phone"));
+                Validate.notNull(sale.getCustomer().getDocumentNumber(), String.format(NOT_NULL_ERROR_MESSAGE, "sale's customer's document number"));
+                Validate.matchesPattern(sale.getShippingAddress(), ".*,[ ]{0,1}\\w*", "The address doesnt have the right format, Ex: Address, City");
+                Validate.notNull(paymentInfo.getCreditCardNumber(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card number"));
+                Validate.notNull(paymentInfo.getCreditCardExpirationDate(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card expiration date"));
+                Validate.notNull(paymentInfo.getCreditCardCVV(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card cvv"));
+                Validate.notNull(paymentInfo.getInstallmentsNumber(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's installments number"));
+        }
+
+        @Override
         public Sale refundPayment(Sale sale) {
+                //Just in case it wasn't called previously
                 validateRefundParams(sale);
                 PayuRequest payuRequest = createRefundRequest(sale);
                 PayuResponse payuResponse = this.sendRequestToPayu(payuRequest);
                 validateResponse(sale, payuRequest, payuResponse);
                 return sale;
+        }
 
+        @Override
+        public void validateRefundParams(Sale sale){
+                Validate.notNull(sale, "Sale mut not be null");
+                Validate.notNull(sale.getRefundReason(), "The refund reason mut not be null");
+                Validate.notNull(sale.getProviderTransactions(), "The provider transactions mut not be null");
         }
 
         @Override
@@ -116,7 +146,7 @@ public class PayuPaymentProvider implements PaymentProvider {
                                 .withExpirationDate(paymentInfo.getCreditCardExpirationDate())
                                 .withSecurityCode(paymentInfo.getCreditCardCVV()).build();
 
-                String[] fullAddress = sale.getCustomer().getAddress().split(SPLIT_ADDRESS);
+                String[] fullAddress = sale.getShippingAddress().split(SPLIT_ADDRESS);
                 Address billingAddress = Address.createBuilder().withStreet1(fullAddress[0]).withCity(fullAddress[1])
                                 .withCountry(COUNTRY).withPhone(sale.getCustomer().getPhone()).build();
 
@@ -136,10 +166,6 @@ public class PayuPaymentProvider implements PaymentProvider {
                                 .withTest(false).withTransaction(transaction).build();
         }
 
-        private void validateAuthorizationAndCaptureParams(Sale sale, PaymentInfo paymentInfo){
-
-        }
-
         private PayuRequest createRefundRequest(Sale sale) {
                 Order order = Order.createBuilder().withId(sale.getExternalSaleId()).build();
 
@@ -150,10 +176,6 @@ public class PayuPaymentProvider implements PaymentProvider {
 
                 return PayuRequest.createBuilder(LANGUAGE, Command.SUBMIT_TRANSACTION, API_KEY, API_LOGIN)
                                 .withTransaction(transaction).withTest(false).build();
-        }
-
-        private void validateRefundParams(Sale sale){
-
         }
 
         /**

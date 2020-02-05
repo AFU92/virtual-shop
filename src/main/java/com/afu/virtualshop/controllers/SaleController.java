@@ -1,6 +1,7 @@
 package com.afu.virtualshop.controllers;
 
 import com.afu.virtualshop.models.Sale;
+import com.afu.virtualshop.models.api.PaymentInfo;
 import com.afu.virtualshop.services.ISaleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,8 +33,8 @@ public class SaleController {
     }
 
     @PostMapping
-    public ResponseEntity<Sale> create(@RequestBody Sale sale){
-        Sale newSale = saleService.create(sale);
+    public ResponseEntity<Sale> create(@RequestBody Sale sale, @RequestBody PaymentInfo paymentInfo){
+        Sale newSale = saleService.create(sale, paymentInfo);
         return ResponseEntity.status(HttpStatus.CREATED).body(newSale);
     }
 

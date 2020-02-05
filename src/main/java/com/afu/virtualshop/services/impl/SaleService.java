@@ -3,13 +3,16 @@ package com.afu.virtualshop.services.impl;
 import com.afu.virtualshop.exceptions.NotFoundException;
 import com.afu.virtualshop.models.Product;
 import com.afu.virtualshop.models.Sale;
+import com.afu.virtualshop.models.api.PaymentInfo;
 import com.afu.virtualshop.repositories.SaleRepository;
 import com.afu.virtualshop.services.IProductService;
 import com.afu.virtualshop.services.ISaleService;
+import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,6 +29,7 @@ public class SaleService implements ISaleService {
 
     private final SaleRepository saleRepository;
     private final IProductService productService;
+    private final PaymentProvider paymentProvider;
 
     @Override
     public List<Sale> findAll() {
@@ -49,10 +53,25 @@ public class SaleService implements ISaleService {
     }
 
     @Override
-    public Sale create(Sale newSale) {
-        List<Product> notAviableProducts;
-        newSale.getProducts().forEach(product -> productService.validateStock(product).equals(false));
-        return saleRepository.save(newSale);
+    public Sale create(Sale newSale, PaymentInfo paymentInfo) {
+        this.validateSaleProducts(newSale);
+        this.paymentProvider.validatePaymentParams(newSale, paymentInfo);
+        saleRepository.save(newSale);
+        this.paymentProvider.createPayment(newSale, paymentInfo);
+        return saleRepository.save(paymentProvider.createPayment(newSale, paymentInfo));
+    }
+
+    private void validateSaleProducts(Sale sale){
+        List<String> notAvailableProducts = new ArrayList<>();
+        sale.getProducts().forEach(product -> {
+            if (productService.validateStock(product)==false){
+                String message = product.getDescription() + product.getQuantity();
+                notAvailableProducts.add(message);
+            }
+        });
+        if (!notAvailableProducts.isEmpty()){
+            new IllegalArgumentException("The following products are not available: " + notAvailableProducts.toString());
+        }
     }
 
     @Override

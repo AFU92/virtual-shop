@@ -1,6 +1,7 @@
 package com.afu.virtualshop.services;
 
 import com.afu.virtualshop.models.Sale;
+import com.afu.virtualshop.models.api.PaymentInfo;
 
 import java.util.List;
 
@@ -46,9 +47,10 @@ public interface ISaleService {
      * Create sale.
      *
      * @param newSale the new sale
+     * @param paymentInfo The payment Info
      * @return the sale
      */
-    Sale create(Sale newSale);
+    Sale create(Sale newSale, PaymentInfo paymentInfo);
 
     /**
      * Delete by id.
