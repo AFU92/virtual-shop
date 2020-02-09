@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
  *
  * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
+
 @Service
 @RequiredArgsConstructor
 public class ProductService implements IProductService {
@@ -54,5 +55,10 @@ public class ProductService implements IProductService {
         Product product = findById(productId);
         product.setDeletedAt((Timestamp) new Date());
         this.productRepository.save(product);
+    }
+
+    public Boolean validateStock(Product product){
+        Product existingProduct = findById(product.getId());
+        return product.getQuantity() < existingProduct.getQuantity();
     }
 }

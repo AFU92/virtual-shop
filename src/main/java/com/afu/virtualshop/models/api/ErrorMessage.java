@@ -1,4 +1,4 @@
-package com.afu.virtualshop.api;
+package com.afu.virtualshop.models.api;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +10,7 @@ import lombok.Data;
  * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
 @Data
+
 public class ErrorMessage {
 
     private String message;

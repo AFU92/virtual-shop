@@ -32,6 +32,10 @@ public enum SaleStatus {
      */
     SHIPPED,
     /**
+     * Refund rejected status.
+     */
+    REFUND_REJECTED,
+    /**
      * Refunded sale status.
      */
     REFUNDED;

@@ -45,7 +45,11 @@ public class Customer extends AuditEntity {
     @Column(name = "address", nullable = false)
     private String address;
 
-    @OneToMany(mappedBy="customer")
+    @OneToMany(mappedBy = "customer")
     private List<Sale> sales = new ArrayList<>();
+
+    public String getFullName() {
+        return this.name + " " + this.lastName;
+    }
 
 }

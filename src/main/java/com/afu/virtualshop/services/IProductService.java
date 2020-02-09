@@ -7,6 +7,8 @@ import java.util.List;
 
 /**
  * The interface Product service.
+ *
+ * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
 public interface IProductService {
 
@@ -57,4 +59,6 @@ public interface IProductService {
      * @param productId the product id
      */
     void deleteById(Integer productId);
+
+    Boolean validateStock(Product product);
 }
