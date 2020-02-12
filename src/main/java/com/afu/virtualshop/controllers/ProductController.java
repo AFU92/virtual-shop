@@ -8,7 +8,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -30,6 +29,7 @@ public class ProductController {
      * @param available the available
      * @return the response entity
      */
+    @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping
     public ResponseEntity<List<Product>> findAll(@RequestParam(value="available", required = false) Boolean available){
         List<Product> products;

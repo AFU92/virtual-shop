@@ -33,9 +33,9 @@ public class Product extends AuditEntity {
 
     private String description;
 
-    @Column(name = "dimentions")
-    @Type(type = "JsonDataUserType")
-    private Map<String, String> dimentions;
+//    @Column(name = "dimentions")
+//    @Type(type = "JsonDataUserType")
+//    private Map<String, String> dimentions;
 
     @NotNull
     @Column(name = "quantity", nullable = false)
@@ -48,6 +48,7 @@ public class Product extends AuditEntity {
     private float unitPrice;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     @Column(name = "product_category", nullable = false)
     private ProductCategory productCategory;
 
