@@ -38,6 +38,7 @@ public class Transaction {
     private String userAgent;
     private String reason;
     private String parentTransactionId;
+    private String creditCardTokenId;
 
     private Transaction() {
     }
@@ -56,6 +57,7 @@ public class Transaction {
         this.userAgent = builder.userAgent;
         this.reason = builder.reason;
         this.parentTransactionId = builder.parentTransactionId;
+        this.creditCardTokenId = builder.creditCardTokenId;
     }
 
     public static Builder createBuilder() {
@@ -88,6 +90,7 @@ public class Transaction {
         private String userAgent;
         private String reason;
         private String parentTransactionId;
+        private String creditCardTokenId;
 
         public Builder withOrder(Order order) {
             this.order = order;
@@ -161,6 +164,11 @@ public class Transaction {
 
         public Builder withParentTransactionId(String parentTransactionId) {
             this.parentTransactionId = parentTransactionId;
+            return this;
+        }
+
+        public Builder withCreditCardTokenId(String creditCardTokenId) {
+            this.creditCardTokenId = creditCardTokenId;
             return this;
         }
 

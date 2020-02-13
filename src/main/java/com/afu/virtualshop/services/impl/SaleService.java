@@ -1,10 +1,13 @@
 package com.afu.virtualshop.services.impl;
 
 import com.afu.virtualshop.exceptions.NotFoundException;
+import com.afu.virtualshop.models.Customer;
 import com.afu.virtualshop.models.Product;
 import com.afu.virtualshop.models.Sale;
+import com.afu.virtualshop.models.SaleStatus;
 import com.afu.virtualshop.models.api.PaymentInfo;
 import com.afu.virtualshop.repositories.SaleRepository;
+import com.afu.virtualshop.services.ICustomerService;
 import com.afu.virtualshop.services.IProductService;
 import com.afu.virtualshop.services.ISaleService;
 import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
@@ -30,6 +33,7 @@ public class SaleService implements ISaleService {
     private final SaleRepository saleRepository;
     private final IProductService productService;
     private final PaymentProvider paymentProvider;
+    private final ICustomerService customerService;
 
     @Override
     public List<Sale> findAll() {
@@ -55,7 +59,10 @@ public class SaleService implements ISaleService {
     @Override
     public Sale create(Sale newSale, PaymentInfo paymentInfo) {
         this.validateSaleProducts(newSale);
+        Customer customer =  this.customerService.findById(newSale.getCustomer().getId());
+        newSale.setCustomer(customer);
         this.paymentProvider.validatePaymentParams(newSale, paymentInfo);
+        newSale.setStatus(SaleStatus.CREATED);
         saleRepository.save(newSale);
         this.paymentProvider.createPayment(newSale, paymentInfo);
         return saleRepository.save(paymentProvider.createPayment(newSale, paymentInfo));
@@ -63,10 +70,13 @@ public class SaleService implements ISaleService {
 
     private void validateSaleProducts(Sale sale){
         List<String> notAvailableProducts = new ArrayList<>();
-        sale.getProducts().forEach(product -> {
-            if (productService.validateStock(product)==false){
-                String message = product.getDescription() + product.getQuantity();
+        sale.getSaleProducts().forEach(saleProduct -> {
+            if (productService.validateStock(saleProduct.getProduct().getId(), saleProduct.getQuantity())==false){
+                String message = saleProduct.getProduct().getId()+ "" + saleProduct.getQuantity();
                 notAvailableProducts.add(message);
+            } else{
+                saleProduct.setTotalPrice(saleProduct.getQuantity() * saleProduct.getUnitPrice());
+                sale.setTotalPrice(sale.getTotalPrice() != null ? sale.getTotalPrice() + saleProduct.getTotalPrice() : saleProduct.getTotalPrice());
             }
         });
         if (!notAvailableProducts.isEmpty()){

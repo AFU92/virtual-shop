@@ -1,5 +1,7 @@
 package com.afu.virtualshop.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -47,6 +49,9 @@ public class Customer extends AuditEntity {
 
     @OneToMany(mappedBy = "customer")
     private List<Sale> sales = new ArrayList<>();
+
+    @OneToMany(mappedBy = "customer")
+    private List<CreditCardToken> creditCardTokens = new ArrayList<>();
 
     public String getFullName() {
         return this.name + " " + this.lastName;

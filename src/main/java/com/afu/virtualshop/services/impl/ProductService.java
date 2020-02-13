@@ -35,7 +35,10 @@ public class ProductService implements IProductService {
     }
 
     public Product findById(Integer productId) {
-        return productRepository.findByIdAndNotDeleted(productId).orElseThrow(() -> new NotFoundException("Product with Id " + productId + " not found"));
+
+        return productRepository.findById(productId)
+                .filter(product -> product.getDeletedAt() == null)
+                .orElseThrow(() -> new NotFoundException("Product with Id " + productId + " not found"));
     }
 
     public List<Product> findByProductCategory(ProductCategory productCategory){
@@ -57,8 +60,8 @@ public class ProductService implements IProductService {
         this.productRepository.save(product);
     }
 
-    public Boolean validateStock(Product product){
-        Product existingProduct = findById(product.getId());
-        return product.getQuantity() < existingProduct.getQuantity();
+    public Boolean validateStock(Integer productId, Integer quantity){
+        Product existingProduct = findById(productId);
+        return quantity <= existingProduct.getQuantity();
     }
 }

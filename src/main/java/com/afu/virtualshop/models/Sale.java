@@ -4,6 +4,7 @@ import lombok.Data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,19 +22,21 @@ public class Sale extends AuditEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotEmpty
+    @NotNull
     @Column(name = "total_price", nullable = false)
     private Float totalPrice;
 
-    @Column(name = "refund_percent", nullable = false)
+    @Column(name = "refund_percent")
     private Float refundPercent;
 
-    @Column(name = "refund_value", nullable = false)
+    @Column(name = "refund_value")
     private Float refundValue;
 
+    @Column(name = "refund_reason")
     private String refundReason;
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private SaleStatus status;
 
     @Column(name = "shipping_address")

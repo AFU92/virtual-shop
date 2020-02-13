@@ -31,13 +31,4 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
      */
     List<Product> findByProductCategory(ProductCategory productCategory);
 
-    /**
-     * Find by id and not deleted optional.
-     *
-     * @param id the id
-     * @return the optional
-     */
-    @Query("FROM Product p WHERE p.id = ?1 and p.deletedAt is not null")
-    Optional<Product> findByIdAndNotDeleted(Integer id);
-
 }

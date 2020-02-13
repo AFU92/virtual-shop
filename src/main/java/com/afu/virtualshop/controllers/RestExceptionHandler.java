@@ -1,5 +1,6 @@
 package com.afu.virtualshop.controllers;
 
+import com.afu.virtualshop.exceptions.ProviderException;
 import com.afu.virtualshop.models.api.ErrorMessage;
 import com.afu.virtualshop.exceptions.NotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -62,8 +63,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
      * @param request the request
      * @return the response entity
      */
-    @ExceptionHandler({ IllegalArgumentException.class })
+    @ExceptionHandler({ IllegalArgumentException.class})
     public ResponseEntity<ErrorMessage> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
+        return new ResponseEntity<ErrorMessage>(new ErrorMessage(BAD_REQUEST_MESSAGE,
+                Arrays.asList(ex.getMessage())),
+                HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({ ProviderException.class})
+    public ResponseEntity<ErrorMessage> handleProviderException(ProviderException ex, WebRequest request) {
         return new ResponseEntity<ErrorMessage>(new ErrorMessage(BAD_REQUEST_MESSAGE,
                 Arrays.asList(ex.getMessage())),
                 HttpStatus.BAD_REQUEST);
