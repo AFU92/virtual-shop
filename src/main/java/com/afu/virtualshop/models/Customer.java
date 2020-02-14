@@ -1,6 +1,7 @@
 package com.afu.virtualshop.models;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
@@ -48,9 +49,11 @@ public class Customer extends AuditEntity {
     private String address;
 
     @OneToMany(mappedBy = "customer")
+    @JsonIgnore
     private List<Sale> sales = new ArrayList<>();
 
     @OneToMany(mappedBy = "customer")
+    @JsonIgnore
     private List<CreditCardToken> creditCardTokens = new ArrayList<>();
 
     public String getFullName() {

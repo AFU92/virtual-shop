@@ -61,4 +61,6 @@ public interface IProductService {
     void deleteById(Integer productId);
 
     Boolean validateStock(Integer productId, Integer quantity);
+
+    void reduceProductStock(Integer productId, Integer quantity);
 }

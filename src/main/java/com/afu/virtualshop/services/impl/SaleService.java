@@ -7,9 +7,7 @@ import com.afu.virtualshop.models.Sale;
 import com.afu.virtualshop.models.SaleStatus;
 import com.afu.virtualshop.models.api.PaymentInfo;
 import com.afu.virtualshop.repositories.SaleRepository;
-import com.afu.virtualshop.services.ICustomerService;
-import com.afu.virtualshop.services.IProductService;
-import com.afu.virtualshop.services.ISaleService;
+import com.afu.virtualshop.services.*;
 import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,6 +32,8 @@ public class SaleService implements ISaleService {
     private final IProductService productService;
     private final PaymentProvider paymentProvider;
     private final ICustomerService customerService;
+    private final IProviderTransactionService providerTransactionService;
+    private final ISaleProductService saleProductService;
 
     @Override
     public List<Sale> findAll() {
@@ -64,13 +64,25 @@ public class SaleService implements ISaleService {
         this.paymentProvider.validatePaymentParams(newSale, paymentInfo);
         newSale.setStatus(SaleStatus.CREATED);
         saleRepository.save(newSale);
+        this.saleProductService.saveAll(newSale.getSaleProducts());
         this.paymentProvider.createPayment(newSale, paymentInfo);
-        return saleRepository.save(paymentProvider.createPayment(newSale, paymentInfo));
+        this.providerTransactionService.saveAllProviderTransactions(newSale.getProviderTransactions());
+        this.validateProductsStockUpdate(newSale);
+        return saleRepository.save(newSale);
+    }
+
+    private void validateProductsStockUpdate(Sale sale){
+        if (sale.getStatus().equals(SaleStatus.PAYMENT_APPROVED)){
+            sale.getSaleProducts().forEach(saleProduct -> {
+                this.productService.reduceProductStock(saleProduct.getProduct().getId(), saleProduct.getQuantity());
+            });
+        }
     }
 
     private void validateSaleProducts(Sale sale){
         List<String> notAvailableProducts = new ArrayList<>();
         sale.getSaleProducts().forEach(saleProduct -> {
+            saleProduct.setSale(sale);
             if (productService.validateStock(saleProduct.getProduct().getId(), saleProduct.getQuantity())==false){
                 String message = saleProduct.getProduct().getId()+ "" + saleProduct.getQuantity();
                 notAvailableProducts.add(message);

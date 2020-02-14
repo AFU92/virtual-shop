@@ -1,5 +1,6 @@
 package com.afu.virtualshop.models.payu_integration;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.util.HashMap;
@@ -28,6 +29,7 @@ public class Order {
     /**
      * The Shipping address.
      */
+    @JsonIgnore
     private Address address;
 
     public static Builder createBuilder(){

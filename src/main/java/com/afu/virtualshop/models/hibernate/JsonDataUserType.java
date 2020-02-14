@@ -34,7 +34,7 @@ public class JsonDataUserType implements UserType {
         Map resultMap = new HashMap<>();
 
         Map<?, ?> tempMap = (Map<?, ?>) originalValue;
-        tempMap.forEach((key, value) -> resultMap.put((String) key, (String) value));
+        tempMap.forEach((key, value) -> resultMap.put(key, value));
 
         return resultMap;
     }

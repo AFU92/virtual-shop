@@ -64,4 +64,10 @@ public class ProductService implements IProductService {
         Product existingProduct = findById(productId);
         return quantity <= existingProduct.getQuantity();
     }
+
+    public void reduceProductStock(Integer productId, Integer quantity){
+        Product product = findById(productId);
+        product.setQuantity(product.getQuantity() - quantity);
+        this.productRepository.save(product);
+    }
 }

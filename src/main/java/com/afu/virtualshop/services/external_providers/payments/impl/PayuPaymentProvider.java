@@ -300,15 +300,9 @@ public class PayuPaymentProvider implements PaymentProvider {
 
         private void validateResponse(Sale sale, PayuRequest payuRequest, PayuResponse payuResponse) {
                 ProviderTransaction providerTransaction = new ProviderTransaction();
-                ObjectMapper mapper = new ObjectMapper();
-                try {
-                        String json = mapper.writeValueAsString(payuRequest);
-                        System.out.println("JSON = " + json);
-                } catch (JsonProcessingException e) {
-                        e.printStackTrace();
-                }
-                providerTransaction.setProviderResponse(new ObjectMapper().convertValue(payuResponse, Map.class));
+                //providerTransaction.setProviderResponse(new ObjectMapper().convertValue(payuResponse, Map.class));
                 providerTransaction.setType(payuRequest.getTransaction().getType().name());
+                providerTransaction.setSale(sale);
 
                 if (payuResponse.getCode().equals("SUCCESS")){
                         providerTransaction.setProviderTransactionId(payuResponse.getTransactionResponse().getTransactionId());

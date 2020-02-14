@@ -1,5 +1,6 @@
 package com.afu.virtualshop.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -14,7 +15,6 @@ import javax.validation.constraints.NotNull;
 @Entity
 @Table(name = "sale_product")
 @Data
-
 public class SaleProduct extends AuditEntity {
 
     @Id
@@ -22,7 +22,7 @@ public class SaleProduct extends AuditEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotEmpty
+    @NotNull
     @Column(name = "unit_price", nullable = false)
     private Float unitPrice;
 
@@ -40,6 +40,7 @@ public class SaleProduct extends AuditEntity {
 
     @ManyToOne
     @JoinColumn(name="sale_id", nullable=false)
+    @JsonIgnore
     private Sale sale;
 
     @OneToOne(mappedBy = "saleProduct")
