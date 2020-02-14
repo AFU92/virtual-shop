@@ -1,9 +1,11 @@
 package com.afu.virtualshop.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 /**
  * The type Sale refunded product.
@@ -21,13 +23,13 @@ public class SaleRefundedProduct extends AuditEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotEmpty
+    @NotNull
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
-    @NotEmpty
+    @NotNull
     @Column(name = "total_value", nullable = false)
-    private String totalPrice;
+    private Float totalPrice;
 
     @OneToOne
     @JoinColumn(name="sale_product_id", nullable=false)
@@ -35,6 +37,7 @@ public class SaleRefundedProduct extends AuditEntity {
 
     @ManyToOne
     @JoinColumn(name="sale_id", nullable=false)
+    @JsonIgnore
     private Sale sale;
 
 }

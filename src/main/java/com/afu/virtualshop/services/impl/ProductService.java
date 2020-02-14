@@ -70,4 +70,10 @@ public class ProductService implements IProductService {
         product.setQuantity(product.getQuantity() - quantity);
         this.productRepository.save(product);
     }
+
+    public void increaseProductStock(Integer productId, Integer quantity){
+        Product product = findById(productId);
+        product.setQuantity(product.getQuantity() + quantity);
+        this.productRepository.save(product);
+    }
 }

@@ -2,6 +2,7 @@ package com.afu.virtualshop.controllers;
 
 import com.afu.virtualshop.models.Sale;
 import com.afu.virtualshop.models.api.PaymentInfo;
+import com.afu.virtualshop.models.api.RefundRequest;
 import com.afu.virtualshop.models.api.SaleRequest;
 import com.afu.virtualshop.services.ISaleService;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,11 @@ public class SaleController {
     public ResponseEntity<Sale> create(@RequestBody SaleRequest saleRequest){
         Sale newSale = saleService.create(saleRequest.getSale(), saleRequest.getPaymentInfo());
         return ResponseEntity.status(HttpStatus.CREATED).body(newSale);
+    }
+
+    @PostMapping("/{saleId}/refund")
+    public ResponseEntity<Sale> refund(@PathVariable Integer saleId, @RequestBody RefundRequest refundRequest){
+        return ResponseEntity.ok(this.saleService.refund(saleId, refundRequest));
     }
 
     @DeleteMapping("/{id}")
