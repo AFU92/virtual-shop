@@ -1,6 +1,5 @@
 package com.afu.virtualshop.models.payu_integration;
 
-import com.afu.virtualshop.services.external_providers.payments.impl.CreditCardTokenInformation;
 import lombok.Data;
 
 /**

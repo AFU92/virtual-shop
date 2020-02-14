@@ -1,4 +1,4 @@
-package com.afu.virtualshop.services.external_providers.payments.impl;
+package com.afu.virtualshop.models.payu_integration;
 
 import lombok.Builder;
 import lombok.Data;
