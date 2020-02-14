@@ -1,12 +1,13 @@
 package com.afu.virtualshop.services.external_providers.payments.impl;
 
 import com.afu.virtualshop.exceptions.NotFoundException;
-import com.afu.virtualshop.models.ProviderTransaction;
-import com.afu.virtualshop.models.Sale;
-import com.afu.virtualshop.models.TransactionResult;
+import com.afu.virtualshop.exceptions.ProviderException;
+import com.afu.virtualshop.models.*;
 import com.afu.virtualshop.models.api.PaymentInfo;
 import com.afu.virtualshop.models.payu_integration.*;
+import com.afu.virtualshop.models.payu_integration.CreditCardToken;
 import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
@@ -67,7 +68,7 @@ public class PayuPaymentProvider implements PaymentProvider {
         /**
          * The constant SPLIT_ADDRESS.
          */
-        private static final String SPLIT_ADDRESS = ";";
+        private static final String SPLIT_ADDRESS = ",";
 
         /**
          * The constant CURRENCY.
@@ -105,10 +106,12 @@ public class PayuPaymentProvider implements PaymentProvider {
                 Validate.notNull(sale.getCustomer().getPhone(), String.format(NOT_NULL_ERROR_MESSAGE, "sale's customer's phone"));
                 Validate.notNull(sale.getCustomer().getDocumentNumber(), String.format(NOT_NULL_ERROR_MESSAGE, "sale's customer's document number"));
                 Validate.matchesPattern(sale.getShippingAddress(), ".*,[ ]{0,1}\\w*", "The address doesnt have the right format, Ex: Address, City");
-                Validate.notNull(paymentInfo.getCreditCardNumber(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card number"));
-                Validate.notNull(paymentInfo.getCreditCardExpirationDate(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card expiration date"));
-                Validate.notNull(paymentInfo.getCreditCardCVV(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card cvv"));
                 Validate.notNull(paymentInfo.getInstallmentsNumber(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's installments number"));
+                if(paymentInfo.getToken() == null){
+                        Validate.notNull(paymentInfo.getCreditCardNumber(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card number"));
+                        Validate.notNull(paymentInfo.getCreditCardExpirationDate(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card expiration date"));
+                        Validate.notNull(paymentInfo.getCreditCardCVV(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card cvv"));
+                }
         }
 
         @Override
@@ -123,14 +126,85 @@ public class PayuPaymentProvider implements PaymentProvider {
 
         @Override
         public void validateRefundParams(Sale sale){
-                Validate.notNull(sale, "Sale mut not be null");
-                Validate.notNull(sale.getRefundReason(), "The refund reason mut not be null");
-                Validate.notNull(sale.getProviderTransactions(), "The provider transactions mut not be null");
+                Validate.notNull(sale, String.format(NOT_NULL_ERROR_MESSAGE, "sale"));
+                Validate.notNull(sale.getRefundReason(), String.format(NOT_NULL_ERROR_MESSAGE, "refund reason"));
+                Validate.notNull(sale.getProviderTransactions(), String.format(NOT_NULL_ERROR_MESSAGE, "provider transactions"));
         }
 
         @Override
         public Sale queryPayment(Sale sale) {
                 return null;
+        }
+
+        @Override
+        public com.afu.virtualshop.models.CreditCardToken createToken(PaymentInfo paymentInfo, Customer customer) {
+                validateTokenParams(paymentInfo, customer);
+                PayuRequest payuRequest = this.createTokenRequest(paymentInfo, customer);
+                PayuResponse payuResponse = this.sendRequestToPayu(payuRequest);
+                return validateTokenResponse(paymentInfo, customer, payuResponse);
+        }
+
+        private com.afu.virtualshop.models.CreditCardToken validateTokenResponse(PaymentInfo paymentInfo, Customer customer, PayuResponse payuResponse){
+                if (payuResponse.getCode().equals("SUCCESS")){
+                        com.afu.virtualshop.models.CreditCardToken creditCardToken = new com.afu.virtualshop.models.CreditCardToken();
+                        creditCardToken.setCustomer(customer);
+                        creditCardToken.setPaymentMethod(paymentInfo.getPaymentMethod());
+                        creditCardToken.setProvider(Provider.PAYU);
+                        creditCardToken.setToken(payuResponse.getCreditCardToken().getCreditCardTokenId());
+                        return creditCardToken;
+                } else {
+                        throw new ProviderException(payuResponse.getCreditCardToken().getErrorDescription());
+                }
+        }
+
+        private void validateTokenParams(PaymentInfo paymentInfo, Customer customer) {
+                Validate.notNull(paymentInfo, String.format(NOT_NULL_ERROR_MESSAGE, "payment Info"));
+                Validate.notNull(paymentInfo.getCreditCardNumber(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card number"));
+                Validate.notNull(paymentInfo.getCreditCardCVV(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card cvv"));
+                Validate.notNull(paymentInfo.getCreditCardExpirationDate(), String.format(NOT_NULL_ERROR_MESSAGE, "payment info's credit card expiration date"));
+                Validate.notNull(customer, String.format(NOT_NULL_ERROR_MESSAGE, "customer"));
+                Validate.notNull(customer.getId(), String.format(NOT_NULL_ERROR_MESSAGE, "customer's id"));
+                Validate.notNull(customer.getFullName(), String.format(NOT_NULL_ERROR_MESSAGE, "customer's name"));
+                Validate.notNull(customer.getDocumentNumber(), String.format(NOT_NULL_ERROR_MESSAGE, "customer's document number"));
+        }
+
+        @Override
+        public PaymentInfo getTokenInfo(com.afu.virtualshop.models.CreditCardToken creditCardToken) {
+                this.validateGetTokenInfoParams(creditCardToken);
+                PayuRequest payuRequest = this.createGetTokenRequest(creditCardToken);
+                PayuResponse payuResponse = this.sendRequestToPayu(payuRequest);
+                return validateGetTokenInfoResponse(payuResponse);
+        }
+
+        private PaymentInfo validateGetTokenInfoResponse(PayuResponse payuResponse) {
+                if (payuResponse.getCode().equals("SUCCESS")){
+                        CreditCardTokenResponse creditCardTokenResponse = payuResponse.getCreditCardTokenList().stream().findFirst().orElseThrow(() -> new ProviderException("Token not found in provider!"));
+                        PaymentInfo paymentInfo = new PaymentInfo();
+                        paymentInfo.setPrintableCreditCardCVV(creditCardTokenResponse.getMaskedNumber());
+                        paymentInfo.setPaymentMethod(creditCardTokenResponse.getPaymentMethod());
+                        paymentInfo.setToken(creditCardTokenResponse.getCreditCardTokenId());
+                        return paymentInfo;
+                } else {
+                        throw new ProviderException(payuResponse.getCreditCardToken().getErrorDescription());
+                }
+        }
+
+        private void validateGetTokenInfoParams(com.afu.virtualshop.models.CreditCardToken creditCardToken){
+                Validate.notNull(creditCardToken, String.format(NOT_NULL_ERROR_MESSAGE, "credit card Token"));
+                Validate.notNull(creditCardToken.getToken(), String.format(NOT_NULL_ERROR_MESSAGE, "credit card Token info"));
+                Validate.notNull(creditCardToken.getCustomer(), String.format(NOT_NULL_ERROR_MESSAGE, "credit card Token customer"));
+                Validate.notNull(creditCardToken.getCustomer().getId(), String.format(NOT_NULL_ERROR_MESSAGE, "credit card Token customer id"));
+        }
+
+        private PayuRequest createGetTokenRequest(com.afu.virtualshop.models.CreditCardToken creditCardToken){
+                CreditCardTokenInformation creditCardTokenInformation = CreditCardTokenInformation.builder()
+                        .creditCardTokenId(creditCardToken.getToken())
+                        .payerId(creditCardToken.getCustomer().getId().toString())
+                        .build();
+
+                return PayuRequest.createBuilder(LANGUAGE, Command.GET_TOKENS, API_KEY, API_LOGIN)
+                        .withCreditCardTokenInformation(creditCardTokenInformation)
+                        .build();
         }
 
         private PayuRequest createAuthorizationAndCaptureRequest(Sale sale, PaymentInfo paymentInfo) {
@@ -140,11 +214,6 @@ public class PayuPaymentProvider implements PaymentProvider {
                                 .withLanguage(LANGUAGE).addAdditionalValue(AdditionalValueType.TX_VALUE,
                                                 new AdditionalValue(sale.getTotalPrice(), CURRENCY))
                                 .build();
-
-                CreditCard creditCard = CreditCard.createBuilder().withName(sale.getCustomer().getFullName())
-                                .withNumber(paymentInfo.getCreditCardNumber())
-                                .withExpirationDate(paymentInfo.getCreditCardExpirationDate())
-                                .withSecurityCode(paymentInfo.getCreditCardCVV()).build();
 
                 String[] fullAddress = sale.getShippingAddress().split(SPLIT_ADDRESS);
                 Address billingAddress = Address.createBuilder().withStreet1(fullAddress[0]).withCity(fullAddress[1])
@@ -156,8 +225,19 @@ public class PayuPaymentProvider implements PaymentProvider {
                                 .withDniNumber(sale.getCustomer().getDocumentNumber())
                                 .withBillingAddress(billingAddress).build();
 
-                Transaction transaction = Transaction.createBuilder().withCreditCard(creditCard).withOrder(order)
-                                .addExtraParameter(ExtraParameter.INSTALLMENTS, paymentInfo.getInstallmentsNumber())
+                Transaction.Builder transactionBuilder = Transaction.createBuilder();
+                if(paymentInfo.getToken() == null){
+                        CreditCard creditCard = CreditCard.createBuilder().withName(sale.getCustomer().getFullName())
+                                .withNumber(paymentInfo.getCreditCardNumber())
+                                .withExpirationDate(paymentInfo.getCreditCardExpirationDate())
+                                .withSecurityCode(paymentInfo.getCreditCardCVV()).build();
+                        transactionBuilder.withCreditCard(creditCard);
+                } else {
+                        transactionBuilder.withCreditCardTokenId(paymentInfo.getToken());
+                }
+
+                Transaction transaction = transactionBuilder.withOrder(order)
+                                .addExtraParameter(ExtraParameter.INSTALLMENTS_NUMBER, paymentInfo.getInstallmentsNumber())
                                 .withType(TransactionType.AUTHORIZATION_AND_CAPTURE)
                                 .withPaymentMethod(paymentInfo.getPaymentMethod().name()).withPaymentCountry(COUNTRY)
                                 .withPayer(payer).build();
@@ -178,11 +258,27 @@ public class PayuPaymentProvider implements PaymentProvider {
                                 .withTransaction(transaction).withTest(false).build();
         }
 
+        private PayuRequest createTokenRequest(PaymentInfo paymentInfo, Customer customer){
+
+                CreditCardToken creditCardToken = CreditCardToken.builder()
+                        .payerId(customer.getId().toString())
+                        .name(customer.getFullName())
+                        .identificationNumber(customer.getDocumentNumber())
+                        .paymentMethod(paymentInfo.getPaymentMethod().name())
+                        .number(paymentInfo.getCreditCardNumber())
+                        .expirationDate(paymentInfo.getCreditCardExpirationDate())
+                        .build();
+                return PayuRequest.createBuilder(LANGUAGE, Command.SUBMIT_TRANSACTION, API_KEY, API_LOGIN)
+                        .withCommand(Command.CREATE_TOKEN)
+                        .withCreditCardToken(creditCardToken)
+                        .build();
+        }
+
         /**
          * Find the providerTransaction with type AUTHORIZATION_AND_CAPTURE and result
          * APPROVED of the sale
          * 
-         * @param sale
+         * @param sale The sale
          * @return providerTransaction with type AUTHORIZATION_AND_CAPTURE and result
          *         APPROVED
          */
@@ -204,11 +300,12 @@ public class PayuPaymentProvider implements PaymentProvider {
 
         private void validateResponse(Sale sale, PayuRequest payuRequest, PayuResponse payuResponse) {
                 ProviderTransaction providerTransaction = new ProviderTransaction();
-                providerTransaction.setProviderResponse(new ObjectMapper().convertValue(payuResponse, Map.class));
-                providerTransaction.setProviderTransactionId(payuResponse.getTransactionResponse().getTransactionId());
+                //providerTransaction.setProviderResponse(new ObjectMapper().convertValue(payuResponse, Map.class));
                 providerTransaction.setType(payuRequest.getTransaction().getType().name());
+                providerTransaction.setSale(sale);
 
                 if (payuResponse.getCode().equals("SUCCESS")){
+                        providerTransaction.setProviderTransactionId(payuResponse.getTransactionResponse().getTransactionId());
                         ResultMapper resultMapper =  ResultMapper.getByTransactionTypeAndResult(payuRequest.getTransaction().getType(), payuResponse.getTransactionResponse().getState());
                         providerTransaction.setResult(resultMapper.getTransactionResult());
                         sale.setStatus(resultMapper.getSaleStatus());

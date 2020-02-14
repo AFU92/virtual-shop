@@ -10,11 +10,11 @@ import lombok.Data;
  */
 @Data
 public class PaymentInfo {
-
     private String creditCardNumber;
     private String creditCardCVV;
     private String creditCardExpirationDate;
     private String installmentsNumber;
     private PaymentMethod paymentMethod;
-
+    private String printableCreditCardCVV;
+    private String token;
 }

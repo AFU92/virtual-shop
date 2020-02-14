@@ -1,6 +1,7 @@
 package com.afu.virtualshop.models;
 
 import com.afu.virtualshop.models.hibernate.JsonDataUserType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -33,9 +34,10 @@ public class Product extends AuditEntity {
 
     private String description;
 
-//    @Column(name = "dimentions")
-//    @Type(type = "JsonDataUserType")
-//    private Map<String, String> dimentions;
+    @Column(name = "dimentions")
+    @Type(type = "JsonDataUserType")
+    @NotNull
+    private Map<String, String> dimentions;
 
     @NotNull
     @Column(name = "quantity", nullable = false)
@@ -53,12 +55,15 @@ public class Product extends AuditEntity {
     private ProductCategory productCategory;
 
     @OneToMany(mappedBy="product")
+    @JsonIgnore
     private List<InputProduct> inputProducts = new ArrayList<>();
 
     @OneToMany(mappedBy="product")
+    @JsonIgnore
     private List<SaleProduct> saleProducts = new ArrayList<>();
 
     @ManyToMany(mappedBy = "products")
+    @JsonIgnore
     private List<Sale> sales;
 
     }

@@ -1,5 +1,6 @@
 package com.afu.virtualshop.models.payu_integration;
 
+import com.afu.virtualshop.services.external_providers.payments.impl.CreditCardTokenInformation;
 import lombok.Data;
 
 /**
@@ -7,7 +8,6 @@ import lombok.Data;
  *
  * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
  */
-
 @Data
 public class PayuRequest {
 
@@ -21,6 +21,17 @@ public class PayuRequest {
          * The Transaction.
          */
         Transaction transaction;
+
+        /**
+         * The Credit Card Token
+         */
+        CreditCardToken creditCardToken;
+
+        /**
+         * The Credit Card Token Information
+         */
+        CreditCardTokenInformation creditCardTokenInformation;
+
         private boolean test;
 
         private PayuRequest(){}
@@ -30,6 +41,8 @@ public class PayuRequest {
                 this.command = builder.command;
                 this.merchant = builder.merchant;
                 this.transaction = builder.transaction;
+                this.creditCardToken = builder.creditCardToken;
+                this.creditCardTokenInformation = builder.creditCardTokenInformation;
                 this.test = builder.test;
         }
 
@@ -59,6 +72,17 @@ public class PayuRequest {
                  * The Transaction.
                  */
                 Transaction transaction;
+
+                /**
+                 * The Credit Card Token
+                 */
+                CreditCardToken creditCardToken;
+
+                /**
+                 * The Credit Card Token Information
+                 */
+                CreditCardTokenInformation creditCardTokenInformation;
+
                 private boolean test;
 
                 public Builder withLanguage(String language){
@@ -83,6 +107,16 @@ public class PayuRequest {
 
                 public Builder withTest(boolean test){
                         this.test = test;
+                        return this;
+                }
+
+                public Builder withCreditCardToken(CreditCardToken creditCardToken){
+                        this.creditCardToken = creditCardToken;
+                        return this;
+                }
+
+                public Builder withCreditCardTokenInformation(CreditCardTokenInformation creditCardTokenInformation){
+                        this.creditCardTokenInformation = creditCardTokenInformation;
                         return this;
                 }
 

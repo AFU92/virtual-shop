@@ -1,6 +1,7 @@
 package com.afu.virtualshop.models;
 
 import com.afu.virtualshop.models.hibernate.JsonDataUserType;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
@@ -34,6 +35,7 @@ public class ProviderTransaction extends AuditEntity {
 
     @ManyToOne
     @JoinColumn(name="sale_id", nullable=false)
+    @JsonIgnore
     private Sale sale;
 
     @Column(name = "provider_response")
