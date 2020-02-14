@@ -1,10 +1,7 @@
 package com.afu.virtualshop.services.impl;
 
 import com.afu.virtualshop.exceptions.NotFoundException;
-import com.afu.virtualshop.models.Customer;
-import com.afu.virtualshop.models.Product;
-import com.afu.virtualshop.models.Sale;
-import com.afu.virtualshop.models.SaleStatus;
+import com.afu.virtualshop.models.*;
 import com.afu.virtualshop.models.api.PaymentInfo;
 import com.afu.virtualshop.models.api.RefundRequest;
 import com.afu.virtualshop.repositories.SaleRepository;
@@ -124,14 +121,18 @@ public class SaleService implements ISaleService {
         refundRequest.getSaleRefundedProducts().forEach(saleRefundedProduct -> {
             saleRefundedProduct.setSale(sale);
             sale.getSaleRefundedProducts().add(saleRefundedProduct);
+            SaleProduct saleProduct = sale.getSaleProducts().stream().filter(saleProduct2 ->
+                saleProduct2.getId() == saleRefundedProduct.getSaleProduct().getId()
+            ).findFirst().orElseThrow(() -> new NotFoundException("SaleProduct with id: " + saleRefundedProduct.getSaleProduct().getId() + "not found"));
+            saleRefundedProduct.setTotalPrice(saleRefundedProduct.getQuantity() + saleProduct.getUnitPrice());
             sale.setRefundValue(sale.getRefundPercent() == null ? saleRefundedProduct.getTotalPrice() : sale.getRefundValue() + saleRefundedProduct.getTotalPrice());
         });
     }
 
     private void validateProductsStockRefund(Sale sale){
         if (sale.getStatus().equals(SaleStatus.REFUNDED)){
-            sale.getSaleProducts().forEach(saleProduct -> {
-                this.productService.increaseProductStock(saleProduct.getProduct().getId(), saleProduct.getQuantity());
+            sale.getSaleRefundedProducts().forEach(saleRefundedProduct -> {
+                this.productService.increaseProductStock(saleRefundedProduct.getSaleProduct().getId(), saleRefundedProduct.getQuantity());
             });
         }
     }

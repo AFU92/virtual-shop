@@ -4,11 +4,9 @@ import com.afu.virtualshop.exceptions.NotFoundException;
 import com.afu.virtualshop.exceptions.ProviderException;
 import com.afu.virtualshop.models.*;
 import com.afu.virtualshop.models.api.PaymentInfo;
-import com.afu.virtualshop.models.payu_integration.*;
 import com.afu.virtualshop.models.payu_integration.CreditCardToken;
+import com.afu.virtualshop.models.payu_integration.*;
 import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.annotation.PostConstruct;
-import java.util.Map;
 
 /**
  * The type Payu payment provider.

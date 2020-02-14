@@ -3,7 +3,6 @@ package com.afu.virtualshop.models.hibernate;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.SerializationException;
 import org.hibernate.usertype.UserType;

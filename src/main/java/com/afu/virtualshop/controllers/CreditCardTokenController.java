@@ -1,10 +1,8 @@
 package com.afu.virtualshop.controllers;
 
 import com.afu.virtualshop.models.CreditCardToken;
-import com.afu.virtualshop.models.Customer;
 import com.afu.virtualshop.models.api.CreditCardTokenRequest;
 import com.afu.virtualshop.models.api.PaymentInfo;
-import com.afu.virtualshop.models.payu_integration.CreditCard;
 import com.afu.virtualshop.services.ICreditCardTokenService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;

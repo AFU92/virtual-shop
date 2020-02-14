@@ -10,13 +10,12 @@ import com.afu.virtualshop.services.ICreditCardTokenService;
 import com.afu.virtualshop.services.ICustomerService;
 import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class CreditCardTokenService implements ICreditCardTokenService {
 
     private final CreditCardTokenRepository creditCardTokenRepository;

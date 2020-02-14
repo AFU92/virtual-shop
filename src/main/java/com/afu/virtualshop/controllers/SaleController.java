@@ -1,7 +1,6 @@
 package com.afu.virtualshop.controllers;
 
 import com.afu.virtualshop.models.Sale;
-import com.afu.virtualshop.models.api.PaymentInfo;
 import com.afu.virtualshop.models.api.RefundRequest;
 import com.afu.virtualshop.models.api.SaleRequest;
 import com.afu.virtualshop.services.ISaleService;
