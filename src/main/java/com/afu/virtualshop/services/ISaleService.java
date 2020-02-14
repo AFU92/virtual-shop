@@ -2,6 +2,7 @@ package com.afu.virtualshop.services;
 
 import com.afu.virtualshop.models.Sale;
 import com.afu.virtualshop.models.api.PaymentInfo;
+import com.afu.virtualshop.models.api.RefundRequest;
 
 import java.util.List;
 
@@ -58,4 +59,12 @@ public interface ISaleService {
      * @param saleId the sale id
      */
     void deleteById(Integer saleId);
+
+    /**
+     * Refunds a Sale
+     *
+     * @param saleId
+     * @param refundRequest
+     */
+    Sale refund(Integer saleId, RefundRequest refundRequest);
 }

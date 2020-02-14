@@ -6,6 +6,7 @@ import com.afu.virtualshop.models.Product;
 import com.afu.virtualshop.models.Sale;
 import com.afu.virtualshop.models.SaleStatus;
 import com.afu.virtualshop.models.api.PaymentInfo;
+import com.afu.virtualshop.models.api.RefundRequest;
 import com.afu.virtualshop.repositories.SaleRepository;
 import com.afu.virtualshop.services.*;
 import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
@@ -34,6 +35,7 @@ public class SaleService implements ISaleService {
     private final ICustomerService customerService;
     private final IProviderTransactionService providerTransactionService;
     private final ISaleProductService saleProductService;
+    private final ISaleRefundedProductService saleRefundedProductService;
 
     @Override
     public List<Sale> findAll() {
@@ -101,5 +103,36 @@ public class SaleService implements ISaleService {
         Sale sale = findById(saleId);
         sale.setDeletedAt((Timestamp) new Date());
         this.saleRepository.save(sale);
+    }
+
+    @Override
+    public Sale refund(Integer saleId, RefundRequest refundRequest) {
+        Sale sale = this.findById(saleId);
+        if(!sale.getStatus().equals(SaleStatus.PAYMENT_APPROVED)){
+            throw new IllegalArgumentException("Sale with id: " + saleId + " doesn't have the correct status to be refunded");
+        }
+        sale.setRefundReason(refundRequest.getRefundReason());
+        this.associateProductRefundedProductsToSale(sale, refundRequest);
+        this.paymentProvider.refundPayment(sale);
+        this.providerTransactionService.saveAllProviderTransactions(sale.getProviderTransactions());
+        this.validateProductsStockRefund(sale);
+        this.saleRefundedProductService.saveAll(sale.getSaleRefundedProducts());
+        return this.saleRepository.save(sale);
+    }
+
+    private void associateProductRefundedProductsToSale(Sale sale, RefundRequest refundRequest){
+        refundRequest.getSaleRefundedProducts().forEach(saleRefundedProduct -> {
+            saleRefundedProduct.setSale(sale);
+            sale.getSaleRefundedProducts().add(saleRefundedProduct);
+            sale.setRefundValue(sale.getRefundPercent() == null ? saleRefundedProduct.getTotalPrice() : sale.getRefundValue() + saleRefundedProduct.getTotalPrice());
+        });
+    }
+
+    private void validateProductsStockRefund(Sale sale){
+        if (sale.getStatus().equals(SaleStatus.REFUNDED)){
+            sale.getSaleProducts().forEach(saleProduct -> {
+                this.productService.increaseProductStock(saleProduct.getProduct().getId(), saleProduct.getQuantity());
+            });
+        }
     }
 }

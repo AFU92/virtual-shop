@@ -63,4 +63,6 @@ public interface IProductService {
     Boolean validateStock(Integer productId, Integer quantity);
 
     void reduceProductStock(Integer productId, Integer quantity);
+
+    void increaseProductStock(Integer productId, Integer quantity);
 }
