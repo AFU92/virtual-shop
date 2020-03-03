@@ -36,12 +36,14 @@ public class SaleService implements ISaleService {
 
     @Override
     public List<Sale> findAll() {
-        return saleRepository.findAll().stream().filter(sale -> sale.getDeletedAt() != null).collect(Collectors.toList());
+        return saleRepository.findAll().stream().filter(sale -> sale.getDeletedAt() == null).collect(Collectors.toList());
     }
 
     @Override
     public Sale findById(Integer saleId) {
-        return saleRepository.findByIdAndNotDeleted(saleId).orElseThrow(() -> new NotFoundException("Sale with Id " + saleId + " not found"));
+        return saleRepository.findById(saleId)
+                             .filter(sale -> sale.getDeletedAt() == null)
+                             .orElseThrow(() -> new NotFoundException("Sale with Id " + saleId + " not found"));
     }
 
     @Override
@@ -91,7 +93,7 @@ public class SaleService implements ISaleService {
             }
         });
         if (!notAvailableProducts.isEmpty()){
-            new IllegalArgumentException("The following products are not available: " + notAvailableProducts.toString());
+            throw new IllegalArgumentException("The following products are not available: " + notAvailableProducts.toString());
         }
     }
 

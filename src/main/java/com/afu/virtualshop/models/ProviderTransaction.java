@@ -31,6 +31,7 @@ public class ProviderTransaction extends AuditEntity {
     private String type;
 
     @NotNull
+    @Enumerated(EnumType.STRING)
     private TransactionResult result;
 
     @ManyToOne

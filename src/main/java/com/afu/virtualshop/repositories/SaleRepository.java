@@ -16,7 +16,6 @@ public interface SaleRepository extends JpaRepository<Sale, Integer> {
 
     List<Sale> findByCustomerId(Integer customerId);
 
-    @Query("FROM Sale s WHERE s.id = ?1 and s.deletedAt is not null")
-    Optional<Sale> findByIdAndNotDeleted(Integer id);
+    Optional<Sale> findById(Integer id);
 
 }

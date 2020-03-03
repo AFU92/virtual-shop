@@ -7,6 +7,8 @@ import com.afu.virtualshop.models.api.PaymentInfo;
 import com.afu.virtualshop.models.payu_integration.CreditCardToken;
 import com.afu.virtualshop.models.payu_integration.*;
 import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +42,7 @@ public class PayuPaymentProvider implements PaymentProvider {
         private String SERVICE_URL;
 
         /** The rest template. */
-        private RestTemplate restTemplate;
+        private final RestTemplate restTemplate;
 
         /**
          * The constant FORMAT_DESCRIPTION.
@@ -71,14 +73,6 @@ public class PayuPaymentProvider implements PaymentProvider {
          * The constant CURRENCY.
          */
         public static final String CURRENCY = "COP";
-
-        /**
-         * Inits the.
-         */
-        @PostConstruct
-        public void init() {
-                restTemplate = new RestTemplate();
-        }
 
         @Override
         public Sale createPayment(Sale sale, PaymentInfo paymentInfo) {
@@ -282,7 +276,7 @@ public class PayuPaymentProvider implements PaymentProvider {
         private ProviderTransaction getCaptureTransaction(Sale sale) {
                 return sale.getProviderTransactions().stream()
                                 .filter(providerTransaction -> providerTransaction.getType()
-                                                .equals(TransactionType.AUTHORIZATION_AND_CAPTURE)
+                                                .equals(TransactionType.AUTHORIZATION_AND_CAPTURE.name())
                                                 && providerTransaction.getResult().equals(TransactionResult.APPROVED))
                                 .findFirst().orElseThrow(() -> new NotFoundException(
                                                 "There is no approved capture for the sale " + sale.getId()));
@@ -309,6 +303,7 @@ public class PayuPaymentProvider implements PaymentProvider {
                 } else {
                         providerTransaction.setResult(TransactionResult.REJECTED);
                 }
+                sale.setExternalSaleId(payuResponse.getTransactionResponse().getOrderId());
                 sale.getProviderTransactions().add(providerTransaction);
         }
 
