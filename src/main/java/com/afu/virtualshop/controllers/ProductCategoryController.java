@@ -11,6 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * The type Product category controller.
+ *
+ * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
+ */
 @RestController
 @RequestMapping("/product_categories")
 @Slf4j
@@ -19,6 +24,11 @@ public class ProductCategoryController {
 
     private final IProductCategoryService productCategoryService;
 
+    /**
+     * Find all list.
+     *
+     * @return the list
+     */
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping
     public List<ProductCategory> findAll(){

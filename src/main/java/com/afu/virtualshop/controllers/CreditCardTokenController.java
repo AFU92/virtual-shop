@@ -1,5 +1,6 @@
 package com.afu.virtualshop.controllers;
 
+import com.afu.virtualshop.documentationControllers.CreditCardTokenDocumentation;
 import com.afu.virtualshop.models.CreditCardToken;
 import com.afu.virtualshop.models.api.CreditCardTokenRequest;
 import com.afu.virtualshop.models.api.PaymentInfo;
@@ -9,10 +10,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * The type Credit card token controller.
+ *
+ * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
+ */
 @AllArgsConstructor
 @RestController
 @RequestMapping("/credit_card_tokens")
-public class CreditCardTokenController {
+public class CreditCardTokenController implements CreditCardTokenDocumentation {
 
     private final ICreditCardTokenService creditCardTokenService;
 

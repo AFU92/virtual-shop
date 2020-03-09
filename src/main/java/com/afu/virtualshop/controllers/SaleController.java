@@ -1,5 +1,6 @@
 package com.afu.virtualshop.controllers;
 
+import com.afu.virtualshop.documentationControllers.SaleDocumentation;
 import com.afu.virtualshop.models.Sale;
 import com.afu.virtualshop.models.api.RefundRequest;
 import com.afu.virtualshop.models.api.SaleRequest;
@@ -10,11 +11,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * The type Sale controller.
+ *
+ * @author Andrea Fuentes (andrea.fuentes@payulatam.com)
+ */
 @RestController
 @RequestMapping("/sales")
 @Slf4j
 @RequiredArgsConstructor
-public class SaleController {
+public class SaleController implements SaleDocumentation {
 
     private final ISaleService saleService;
 
@@ -33,6 +39,7 @@ public class SaleController {
         return ResponseEntity.ok(saleService.update(sale));
     }
 
+    @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping
     public ResponseEntity<Sale> create(@RequestBody SaleRequest saleRequest){
         Sale newSale = saleService.create(saleRequest.getSale(), saleRequest.getPaymentInfo());
@@ -44,9 +51,4 @@ public class SaleController {
         return ResponseEntity.ok(this.saleService.refund(saleId, refundRequest));
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity delete(@PathVariable Integer id){
-        saleService.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
 }
