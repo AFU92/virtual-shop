@@ -42,7 +42,7 @@ public class PayuPaymentProvider implements PaymentProvider {
         private String SERVICE_URL;
 
         /** The rest template. */
-        private final RestTemplate restTemplate;
+        private final RestTemplate restTemplate = new RestTemplate();
 
         /**
          * The constant FORMAT_DESCRIPTION.
@@ -217,16 +217,16 @@ public class PayuPaymentProvider implements PaymentProvider {
                                 .withBillingAddress(billingAddress).build();
 
                 Transaction.Builder transactionBuilder = Transaction.createBuilder();
+                CreditCard.Builder creditCardBuilder = CreditCard.createBuilder().withSecurityCode(paymentInfo.getCreditCardCVV());
                 if(paymentInfo.getToken() == null){
-                        CreditCard creditCard = CreditCard.createBuilder().withName(sale.getCustomer().getFullName())
+                        creditCardBuilder.withName(sale.getCustomer().getFullName())
                                 .withNumber(paymentInfo.getCreditCardNumber())
-                                .withExpirationDate(paymentInfo.getCreditCardExpirationDate())
-                                .withSecurityCode(paymentInfo.getCreditCardCVV()).build();
-                        transactionBuilder.withCreditCard(creditCard);
+                                .withExpirationDate(paymentInfo.getCreditCardExpirationDate());
                 } else {
                         transactionBuilder.withCreditCardTokenId(paymentInfo.getToken());
                 }
 
+                transactionBuilder.withCreditCard(creditCardBuilder.build());
                 Transaction transaction = transactionBuilder.withOrder(order)
                                 .addExtraParameter(ExtraParameter.INSTALLMENTS_NUMBER, paymentInfo.getInstallmentsNumber())
                                 .withType(TransactionType.AUTHORIZATION_AND_CAPTURE)
@@ -283,6 +283,16 @@ public class PayuPaymentProvider implements PaymentProvider {
         }
 
         private PayuResponse sendRequestToPayu(PayuRequest payuRequest){
+                ObjectMapper mapper = new ObjectMapper();
+
+                String json = null;
+                try {
+                        json = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(payuRequest);
+                } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                }
+                System.out.println(json);
+
                 HttpEntity<PayuRequest> request = new HttpEntity<>(payuRequest);
                 ResponseEntity<PayuResponse> response = restTemplate.exchange(SERVICE_URL, HttpMethod.POST, request,
                         PayuResponse.class);
@@ -300,10 +310,10 @@ public class PayuPaymentProvider implements PaymentProvider {
                         ResultMapper resultMapper =  ResultMapper.getByTransactionTypeAndResult(payuRequest.getTransaction().getType(), payuResponse.getTransactionResponse().getState());
                         providerTransaction.setResult(resultMapper.getTransactionResult());
                         sale.setStatus(resultMapper.getSaleStatus());
+                        sale.setExternalSaleId(payuResponse.getTransactionResponse().getOrderId());
                 } else {
                         providerTransaction.setResult(TransactionResult.REJECTED);
                 }
-                sale.setExternalSaleId(payuResponse.getTransactionResponse().getOrderId());
                 sale.getProviderTransactions().add(providerTransaction);
         }
 

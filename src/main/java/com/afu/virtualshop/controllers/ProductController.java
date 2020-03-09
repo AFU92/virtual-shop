@@ -77,17 +77,5 @@ public class ProductController {
         return ResponseEntity.status(HttpStatus.CREATED).body(newProduct);
     }
 
-    /**
-     * Delete response entity.
-     *
-     * @param id the id
-     * @return the response entity
-     */
-    @DeleteMapping("/{id}")
-    public ResponseEntity delete(@PathVariable Integer id) {
-        productService.deleteById(id);
-        return ResponseEntity.noContent().build();
-    }
-
     //ToDo GetProductsByProductCategory EndPoint
 }

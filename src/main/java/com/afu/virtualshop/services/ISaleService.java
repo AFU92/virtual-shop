@@ -54,13 +54,6 @@ public interface ISaleService {
     Sale create(Sale newSale, PaymentInfo paymentInfo);
 
     /**
-     * Delete by id.
-     *
-     * @param saleId the sale id
-     */
-    void deleteById(Integer saleId);
-
-    /**
      * Refunds a Sale
      *
      * @param saleId

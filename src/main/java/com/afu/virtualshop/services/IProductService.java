@@ -19,6 +19,11 @@ public interface IProductService {
      */
     List<Product> findAll();
 
+    /**
+     * Find all available list.
+     *
+     * @return the list
+     */
     List<Product> findAllAvailable();
 
     /**
@@ -54,15 +59,27 @@ public interface IProductService {
     Product create(Product newProduct);
 
     /**
-     * Delete by id.
+     * Validate stock boolean.
      *
      * @param productId the product id
+     * @param quantity  the quantity
+     * @return the boolean
      */
-    void deleteById(Integer productId);
-
     Boolean validateStock(Integer productId, Integer quantity);
 
+    /**
+     * Reduce product stock.
+     *
+     * @param productId the product id
+     * @param quantity  the quantity
+     */
     void reduceProductStock(Integer productId, Integer quantity);
 
+    /**
+     * Increase product stock.
+     *
+     * @param productId the product id
+     * @param quantity  the quantity
+     */
     void increaseProductStock(Integer productId, Integer quantity);
 }

@@ -1,34 +1,33 @@
 package com.afu.virtualshop.documentationControllers;
 
-import com.afu.virtualshop.models.Sale;
+import com.afu.virtualshop.models.Product;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+
+import java.util.List;
+
+public interface ProductDocumentation {
+
+	@ApiOperation("Get all products")
+	ResponseEntity<List<Product>> findAll();
 
 
-public interface SaleDocumentation {
-
-	@ApiOperation("Get all sales")
-	ResponseEntity findAll();
+	@ApiOperation("Get a Product by id")
+	ResponseEntity<Product> findById(@PathVariable Integer id);
 
 
-	@ApiOperation("Get all sales")
-	ResponseEntity findById();
+	@ApiOperation("Update a Product")
+	ResponseEntity<Product> update(@PathVariable Integer id, @RequestBody Product product);
 
 
-	@ApiOperation("Get all sales")
-	ResponseEntity<Sale> update();
+	@ApiOperation("Create a Product")
+	ResponseEntity<Product> create(@RequestBody Product product);
 
 
-	@ApiOperation("Get all sales")
-	ResponseEntity <Sale> create();
-
-
-	@ApiOperation("Get all sales")
-	ResponseEntity <Sale> refund();
-
-
-	@ApiOperation("Get all sales")
-	ResponseEntity delete();
+	@ApiOperation("Delete a Product")
+	ResponseEntity delete(@PathVariable Integer id);
 
 }
 

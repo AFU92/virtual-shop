@@ -8,8 +8,6 @@ import com.afu.virtualshop.services.IProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,7 +28,7 @@ public class ProductService implements IProductService {
     }
 
     public  List<Product> findAllAvailable() {
-        List<Product> productStock = findAll().stream().filter(product -> product.getQuantity() > 0 && product.getDeletedAt() != null).collect(Collectors.toList());
+        List<Product> productStock = findAll().stream().filter(product -> product.getQuantity() > 0).collect(Collectors.toList());
         return productStock;
     }
 
@@ -54,11 +52,6 @@ public class ProductService implements IProductService {
         return productRepository.save(newProduct);
     }
 
-    public void deleteById(Integer productId) {
-        Product product = findById(productId);
-        product.setDeletedAt((Timestamp) new Date());
-        this.productRepository.save(product);
-    }
 
     public Boolean validateStock(Integer productId, Integer quantity){
         Product existingProduct = findById(productId);

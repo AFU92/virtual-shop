@@ -10,11 +10,8 @@ import com.afu.virtualshop.services.external_providers.payments.PaymentProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * The type Sale service.
@@ -36,13 +33,12 @@ public class SaleService implements ISaleService {
 
     @Override
     public List<Sale> findAll() {
-        return saleRepository.findAll().stream().filter(sale -> sale.getDeletedAt() == null).collect(Collectors.toList());
+        return saleRepository.findAll();
     }
 
     @Override
     public Sale findById(Integer saleId) {
         return saleRepository.findById(saleId)
-                             .filter(sale -> sale.getDeletedAt() == null)
                              .orElseThrow(() -> new NotFoundException("Sale with Id " + saleId + " not found"));
     }
 
@@ -83,25 +79,19 @@ public class SaleService implements ISaleService {
     private void validateSaleProducts(Sale sale){
         List<String> notAvailableProducts = new ArrayList<>();
         sale.getSaleProducts().forEach(saleProduct -> {
+            Product product = productService.findById(saleProduct.getProduct().getId());
             saleProduct.setSale(sale);
             if (productService.validateStock(saleProduct.getProduct().getId(), saleProduct.getQuantity())==false){
                 String message = saleProduct.getProduct().getId()+ "" + saleProduct.getQuantity();
                 notAvailableProducts.add(message);
             } else{
-                saleProduct.setTotalPrice(saleProduct.getQuantity() * saleProduct.getUnitPrice());
+                saleProduct.setTotalPrice(saleProduct.getQuantity() * product.getUnitPrice());
                 sale.setTotalPrice(sale.getTotalPrice() != null ? sale.getTotalPrice() + saleProduct.getTotalPrice() : saleProduct.getTotalPrice());
             }
         });
         if (!notAvailableProducts.isEmpty()){
             throw new IllegalArgumentException("The following products are not available: " + notAvailableProducts.toString());
         }
-    }
-
-    @Override
-    public void deleteById(Integer saleId) {
-        Sale sale = findById(saleId);
-        sale.setDeletedAt((Timestamp) new Date());
-        this.saleRepository.save(sale);
     }
 
     @Override
@@ -126,7 +116,7 @@ public class SaleService implements ISaleService {
             SaleProduct saleProduct = sale.getSaleProducts().stream().filter(saleProduct2 ->
                 saleProduct2.getId() == saleRefundedProduct.getSaleProduct().getId()
             ).findFirst().orElseThrow(() -> new NotFoundException("SaleProduct with id: " + saleRefundedProduct.getSaleProduct().getId() + "not found"));
-            saleRefundedProduct.setTotalPrice(saleRefundedProduct.getQuantity() + saleProduct.getUnitPrice());
+            saleRefundedProduct.setTotalPrice(saleRefundedProduct.getQuantity() * saleProduct.getUnitPrice());
             sale.setRefundValue(sale.getRefundPercent() == null ? saleRefundedProduct.getTotalPrice() : sale.getRefundValue() + saleRefundedProduct.getTotalPrice());
         });
     }
