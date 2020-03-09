@@ -237,7 +237,7 @@ public class SaleServiceTest {
 
 
 	@Test
-	public void refund() {
+	public void refund_whenPaymentStatusApproved_thenRefund() {
 		Sale sale = createSaleWithCommonData();
 		sale.setStatus(SaleStatus.PAYMENT_APPROVED);
 
@@ -277,4 +277,52 @@ public class SaleServiceTest {
 		assertThat(sale.getRefundValue(), equalTo(refundedProduct.getQuantity()*saleProduct.getUnitPrice()));
 
 	}
+
+	@Test(expected = IllegalArgumentException.class)
+	public void refund() {
+		Sale sale = createSaleWithCommonData();
+		sale.setStatus(SaleStatus.CREATED);
+
+		when(saleRepository.findById(sale.getId())).thenReturn(Optional.of(sale));
+
+		saleService.refund(sale.getId(), new RefundRequest());
+
+	}
+
+	@Test
+	public void refund_whenRefundNotApproved() {
+		Sale sale = createSaleWithCommonData();
+		sale.setStatus(SaleStatus.PAYMENT_APPROVED);
+
+		SaleProduct saleProduct = sale.getSaleProducts().get(0);
+		saleProduct.setUnitPrice(100.0F);
+
+		RefundRequest refundRequest = new RefundRequest();
+
+		SaleRefundedProduct refundedProduct = new SaleRefundedProduct();
+		refundedProduct.setSaleProduct(saleProduct);
+		refundedProduct.setQuantity(saleProduct.getQuantity()-1);
+
+		refundRequest.setSaleRefundedProducts(Arrays.asList(refundedProduct));
+		refundRequest.setRefundReason("Something");
+
+		when(saleRepository.findById(sale.getId())).thenReturn(Optional.of(sale));
+
+		saleService.refund(sale.getId(), refundRequest);
+
+		verify(saleRepository).findById(sale.getId());
+		verify(paymentProvider).refundPayment(sale);
+		verify(providerTransactionService).saveAllProviderTransactions(any());
+		verify(saleRefundedProductService).saveAll(sale.getSaleRefundedProducts());
+		verify(saleRepository).save(sale);
+
+		assertNotNull(sale.getSaleRefundedProducts());
+		assertEquals(sale.getSaleRefundedProducts().size(), 1);
+		assertNotNull(sale.getRefundValue());
+		assertNotNull(sale.getRefundReason());
+		assertEquals(sale.getRefundReason(), refundRequest.getRefundReason());
+		assertThat(sale.getRefundValue(), equalTo(refundedProduct.getQuantity()*saleProduct.getUnitPrice()));
+
+	}
+
 }

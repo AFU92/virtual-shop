@@ -1,5 +1,6 @@
 package com.afu.virtualshop.services.impl;
 
+import com.afu.virtualshop.exceptions.NotFoundException;
 import com.afu.virtualshop.models.Product;
 import com.afu.virtualshop.models.ProductCategory;
 import com.afu.virtualshop.repositories.ProductRepository;
@@ -16,6 +17,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -82,6 +84,14 @@ public class ProductServiceTest {
 
 		verify(productRepository).findById(product.getId());
 
+	}
+
+	@Test(expected = NotFoundException.class)
+	public void findById_whenProductNotExists_thenReturnException() {
+
+		when(productRepository.findById(anyInt())).thenReturn(Optional.empty());
+
+		productService.findById(1);
 	}
 
 	@Test
@@ -190,5 +200,18 @@ public class ProductServiceTest {
 	@Test
 	public void increaseProductStock() {
 
+		Product product = new Product();
+		product.setId(1);
+		product.setQuantity(10);
+
+		when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
+		when(productRepository.save(product)).thenReturn(product);
+
+		productService.increaseProductStock(product.getId(), 5);
+
+		assertThat(product.getQuantity(), equalTo(15));
+
+		verify(productRepository).findById(product.getId());
+		verify(productRepository).save(product);
 	}
 }

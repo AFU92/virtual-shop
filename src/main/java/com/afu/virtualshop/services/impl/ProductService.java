@@ -35,7 +35,6 @@ public class ProductService implements IProductService {
     public Product findById(Integer productId) {
 
         return productRepository.findById(productId)
-                .filter(product -> product.getDeletedAt() == null)
                 .orElseThrow(() -> new NotFoundException("Product with Id " + productId + " not found"));
     }
 

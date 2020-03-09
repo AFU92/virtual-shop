@@ -14,6 +14,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * The type Credit card token service.
+ */
 @Service
 @AllArgsConstructor
 public class CreditCardTokenService implements ICreditCardTokenService {
