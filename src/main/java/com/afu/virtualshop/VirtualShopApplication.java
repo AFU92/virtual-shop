@@ -10,4 +10,5 @@ public class VirtualShopApplication {
         SpringApplication.run(VirtualShopApplication.class, args);
     }
 
+
 }
